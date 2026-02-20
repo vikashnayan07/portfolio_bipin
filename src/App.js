@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useEffect, lazy, Suspense } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Lenis from "lenis";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/layout/Navbar";
 import Hero from "./components/sections/Hero";
 import Loader from "./components/ui/Loader";
@@ -31,8 +34,20 @@ const AchievementToasts = lazy(
 const Testimonials = lazy(() => import("./components/sections/Testimonials"));
 const FloatingDock = lazy(() => import("./components/ui/FloatingDock"));
 
+/* ── Admin components ── */
+const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const Dashboard = lazy(() => import("./components/admin/Dashboard"));
+const ProfileEditor = lazy(() => import("./components/admin/ProfileEditor"));
+const ProjectsManager = lazy(() => import("./components/admin/ProjectsManager"));
+const BlogManager = lazy(() => import("./components/admin/BlogManager"));
+const MessagesManager = lazy(() => import("./components/admin/MessagesManager"));
+const ProtectedRoute = lazy(() => import("./components/admin/ProtectedRoute"));
+
 function App() {
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
 
   const handleLoadComplete = useCallback(() => {
     setLoading(false);
@@ -40,7 +55,7 @@ function App() {
 
   /* ── Lenis Smooth Scroll (optimized for mobile + desktop) ── */
   useEffect(() => {
-    if (loading) return;
+    if (loading || isAdmin) return;
     const isMobile = window.innerWidth < 768;
     const lenis = new Lenis({
       duration: isMobile ? 0.8 : 1.2,
@@ -58,8 +73,53 @@ function App() {
     }
     requestAnimationFrame(raf);
     return () => lenis.destroy();
-  }, [loading]);
+  }, [loading, isAdmin]);
 
+  /* ── Admin Routes ── */
+  if (isAdmin) {
+    return (
+      <AuthProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#0d1f3c",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.1)",
+              fontSize: "13px",
+            },
+          }}
+        />
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-[#0A192F] flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-saffron border-t-transparent rounded-full animate-spin" />
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="profile" element={<ProfileEditor />} />
+              <Route path="projects" element={<ProjectsManager />} />
+              <Route path="blog" element={<BlogManager />} />
+              <Route path="messages" element={<MessagesManager />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </AuthProvider>
+    );
+  }
+
+  /* ── Portfolio (public) ── */
   return (
     <ThemeProvider>
       {/* Loading Screen */}

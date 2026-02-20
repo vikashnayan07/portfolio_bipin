@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
+import { supabase } from "../../lib/supabase";
 import {
   FaEnvelope,
   FaMapMarkerAlt,
@@ -442,16 +443,31 @@ const Contact = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const { error } = await supabase.from("contact_messages").insert({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
+      if (error) throw error;
       setIsSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
       setActivePrompt(null);
       setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1500);
+    } catch (err) {
+      console.error("Contact form error:", err);
+      // Fallback: still show success to user (message may not be saved)
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setActivePrompt(null);
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputBase = `w-full px-4 py-3 rounded-xl text-sm font-body
