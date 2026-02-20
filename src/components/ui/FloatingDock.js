@@ -160,9 +160,6 @@ const FloatingDock = () => {
 
   const handleMouseLeave = useCallback(() => mouseX.set(-1), [mouseX]);
 
-  /* ── Compute indicator position ── */
-  const activeIndex = dockItems.findIndex((d) => d.id === activeId);
-
   return (
     <div className="fixed bottom-5 left-0 right-0 z-[980] flex justify-center pointer-events-none">
       <motion.nav
