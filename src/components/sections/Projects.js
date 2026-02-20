@@ -128,7 +128,7 @@ const ProjectCard = ({ project, index }) => {
         <div className={`h-1.5 w-full bg-gradient-to-r ${project.color}`} />
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {/* Icon + Category */}
           <div className="flex items-center justify-between mb-4">
             <motion.div
@@ -255,7 +255,7 @@ const Projects = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12 md:mb-16"
+          className="text-center mb-8 md:mb-16"
         >
           <h2
             className={`text-3xl md:text-5xl font-heading font-bold mb-4 ${
@@ -280,7 +280,7 @@ const Projects = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-3 mb-12"
+          className="flex flex-wrap justify-center gap-2 md:gap-3 mb-8 md:mb-12"
         >
           {categories.map((cat) => (
             <motion.button
@@ -288,7 +288,7 @@ const Projects = () => {
               onClick={() => setActiveFilter(cat.key)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-heading
+              className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-heading
                 font-medium transition-all duration-300 ${
                   activeFilter === cat.key
                     ? "bg-gradient-to-r from-saffron to-saffron-light text-white shadow-lg shadow-saffron/20"
@@ -306,7 +306,7 @@ const Projects = () => {
         {/* Project Grid */}
         <motion.div
           layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
         >
           <AnimatePresence mode="popLayout">
             {filteredProjects.map((project, index) => (

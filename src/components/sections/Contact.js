@@ -11,6 +11,7 @@ import {
   FaTwitter,
   FaInstagram,
   FaGithub,
+  FaWhatsapp,
   FaChevronDown,
   FaRegComment,
   FaBookOpen,
@@ -60,13 +61,18 @@ const socialLinks = [
   },
   {
     icon: <FaInstagram />,
-    href: "https://instagram.com/bipinkumar",
+    href: "https://www.instagram.com/oberoy.bipin76/",
     label: "Instagram",
   },
   {
     icon: <FaGithub />,
     href: "https://github.com/bipinkumar",
     label: "GitHub",
+  },
+  {
+    icon: <FaWhatsapp />,
+    href: "https://wa.me/917643044297",
+    label: "WhatsApp",
   },
 ];
 
@@ -570,7 +576,7 @@ const Contact = () => {
         </motion.div>
 
         {/* ─── Main 2-Column Layout ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12">
           {/* ──── Left Column: Info + Map + Social ──── */}
           <div className="lg:col-span-2 space-y-6">
             {/* 3D Map Pin Visual */}
@@ -668,7 +674,7 @@ const Contact = () => {
             className="lg:col-span-3"
           >
             <div
-              className={`p-6 md:p-8 rounded-2xl relative overflow-hidden ${
+              className={`p-4 md:p-8 rounded-2xl relative overflow-hidden ${
                 darkMode ? "glass" : "glass-light"
               }`}
             >

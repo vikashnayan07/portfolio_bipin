@@ -1,0 +1,536 @@
+/* ═══════════════════════════════════════════════════════════
+   AURORA MOBILE THEME — Bento Glass Design (≤ 767px only)
+   Inspired by HeroAuroraBento.jsx
+   
+   This file overrides the dark theme on mobile to deliver
+   a warm, light, glass-card aesthetic with colorful aurora
+   gradients and compact bento-style layouts.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Aurora Keyframes ── */
+@keyframes aurora-blob-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, 20px) scale(1.08);
+  }
+  66% {
+    transform: translate(-15px, 35px) scale(0.95);
+  }
+}
+@keyframes aurora-blob-2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  40% {
+    transform: translate(-25px, 15px) scale(1.06);
+  }
+  70% {
+    transform: translate(10px, -20px) scale(0.97);
+  }
+}
+@keyframes aurora-blob-3 {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.15);
+  }
+}
+@keyframes aurora-blob-4 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(40px, -20px);
+  }
+}
+@keyframes aurora-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes aurora-bar-grow {
+  from {
+    width: 0%;
+  }
+}
+@keyframes aurora-shine {
+  0%,
+  100% {
+    transform: translateX(-100%);
+  }
+  40%,
+  60% {
+    transform: translateX(100%);
+  }
+}
+
+/* ── Hero Bento Keyframes ── */
+@keyframes hero-bento-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes hero-bento-ping {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(0, 196, 140, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(0, 196, 140, 0.06);
+  }
+}
+@keyframes hero-bento-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes hero-bento-shine-sweep {
+  0%,
+  100% {
+    transform: translateX(-100%);
+  }
+  40%,
+  60% {
+    transform: translateX(100%);
+  }
+}
+
+/* ═══════════════════════════════════
+   MOBILE-ONLY OVERRIDES (max-width: 767px)
+   ═══════════════════════════════════ */
+@media (max-width: 767px) {
+  /* ── 1. BODY & ROOT BACKGROUND ── */
+  body,
+  body.light-mode {
+    background-color: #f8f4f0 !important;
+    color: #0d0d0d !important;
+  }
+
+  /* ── 2. LOADER ── */
+  .loader {
+    background: #f8f4f0 !important;
+  }
+
+  /* ── 3. SECTION BACKGROUNDS ── */
+  .section-padding {
+    background: transparent !important;
+    position: relative;
+  }
+
+  /* ── 4. AURORA GLASS CARDS ── */
+  .glass,
+  .glass-light {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-radius: 24px !important;
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.8) inset,
+      0 8px 32px -8px rgba(0, 0, 0, 0.08),
+      0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* ── 5. TEXT COLOR OVERRIDES (dark → aurora light) ── */
+  /* Headings */
+  .text-white,
+  .dark .text-white,
+  [class*="text-white"] {
+    color: #0d0d0d !important;
+  }
+
+  /* Body text */
+  .text-gray-300,
+  .dark .text-gray-300 {
+    color: #3d3535 !important;
+  }
+
+  .text-gray-400,
+  .dark .text-gray-400 {
+    color: rgba(13, 13, 13, 0.5) !important;
+  }
+
+  .text-gray-500,
+  .dark .text-gray-500 {
+    color: rgba(13, 13, 13, 0.4) !important;
+  }
+
+  .text-gray-600,
+  .dark .text-gray-600 {
+    color: rgba(13, 13, 13, 0.35) !important;
+  }
+
+  /* ── 6. GRADIENT TEXT — Aurora multi-color ── */
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      #ff6b6b 0%,
+      #ff9f43 50%,
+      #a29bfe 100%
+    ) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+
+  /* ── 7. NAVBAR ── */
+  nav[class*="fixed"][class*="top-0"] {
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 2px 16px -4px rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* ── 8. SECTION PADDING — tighter on mobile ── */
+  .section-padding {
+    padding: 48px 14px !important;
+  }
+
+  /* ── 9. SCROLLBAR ── */
+  ::-webkit-scrollbar-track {
+    background: #f8f4f0 !important;
+  }
+
+  /* ── 10. SELECTION ── */
+  ::selection {
+    background: rgba(255, 107, 107, 0.2) !important;
+    color: #0d0d0d !important;
+  }
+
+  /* ── 11. BUTTONS — Aurora style ── */
+  .btn-primary,
+  [class*="bg-gradient-to-r"][class*="from-saffron"] {
+    box-shadow: 0 4px 16px -4px rgba(255, 107, 107, 0.25) !important;
+  }
+
+  /* ── 12. BORDERS — softer ── */
+  [class*="border-white\\/"],
+  [class*="border-gray-"] {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  /* ── 13. DARK BACKGROUNDS → transparent ── */
+  [class*="bg-navy"],
+  .bg-navy,
+  .bg-navy-light,
+  .bg-navy-lighter {
+    background-color: transparent !important;
+  }
+
+  /* ── 14. SKILL BARS ── */
+  [class*="bg-navy-lighter"] {
+    background-color: rgba(13, 13, 13, 0.06) !important;
+  }
+
+  /* ── 15. NOISE/OVERLAY — hide on mobile aurora ── */
+  [class*="NoiseOverlay"],
+  [class*="noise"] {
+    display: none !important;
+  }
+
+  /* ── 16. SECTION DIVIDERS — aurora warm ── */
+  [class*="SectionDivider"] hr,
+  .section-divider {
+    border-color: rgba(255, 159, 67, 0.12) !important;
+  }
+
+  /* ── 17. FILTER PILLS / TAGS ── */
+  [class*="rounded-full"][class*="bg-saffron\\/10"],
+  [class*="rounded-full"][class*="bg-navy-lighter"] {
+    background: rgba(255, 107, 107, 0.08) !important;
+    border-color: rgba(162, 155, 254, 0.2) !important;
+  }
+
+  /* ── 18. CARD HOVER EFFECTS — softer ── */
+  [class*="shadow-glass-warm"],
+  [class*="shadow-neon-saffron"] {
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.8) inset,
+      0 12px 40px -10px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* ── 19. TIMELINE DOTS ── */
+  [class*="border-saffron"][class*="rounded-full"][class*="w-12"] {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: #ff6b6b !important;
+    color: #ff6b6b !important;
+    box-shadow: 0 4px 16px -4px rgba(255, 107, 107, 0.2) !important;
+  }
+
+  /* ── 20. EDUCATION ARC CARDS ── */
+  [class*="rounded-3xl"][class*="backdrop-blur"] {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* ── 21. SAFFRON ACCENT COLORS → Aurora coral/purple ── */
+  .text-saffron {
+    color: #ff6b6b !important;
+  }
+  .text-saffron-light {
+    color: #ff9f43 !important;
+  }
+  .text-saffron-dark {
+    color: #e17055 !important;
+  }
+
+  /* ── 22. CONTACT FORM INPUTS ── */
+  input[type="text"],
+  input[type="email"],
+  textarea,
+  select {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid rgba(13, 13, 13, 0.08) !important;
+    color: #0d0d0d !important;
+    border-radius: 12px !important;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(13, 13, 13, 0.35) !important;
+  }
+  input:focus,
+  textarea:focus {
+    border-color: rgba(162, 155, 254, 0.4) !important;
+    box-shadow: 0 0 0 3px rgba(162, 155, 254, 0.1) !important;
+  }
+
+  /* ── 23. FOOTER ── */
+  footer {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(20px) !important;
+  }
+
+  /* ── 24. FLOATING DOCK ── */
+  [class*="FloatingDock"],
+  nav[class*="fixed"][class*="bottom-5"] {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.8) inset,
+      0 8px 32px -8px rgba(0, 0, 0, 0.08) !important;
+  }
+  nav[class*="fixed"][class*="bottom-5"] button {
+    background: rgba(13, 13, 13, 0.04) !important;
+    color: rgba(13, 13, 13, 0.5) !important;
+  }
+  nav[class*="fixed"][class*="bottom-5"] button:hover {
+    background: rgba(255, 107, 107, 0.1) !important;
+    color: #ff6b6b !important;
+  }
+
+  /* ── 25. SCROLL PROGRESS BAR ── */
+  [class*="ScrollProgress"] {
+    background: linear-gradient(90deg, #ff6b6b, #ff9f43, #a29bfe) !important;
+  }
+
+  /* ── 26. BACK TO TOP ── */
+  [class*="BackToTop"],
+  [class*="backToTop"] {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    color: #ff6b6b !important;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* ── 27. BLOG CARDS ── */
+  .tilt-card {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* ── 28. FAQ ACCORDION ── */
+  [class*="accordion"] details,
+  details summary {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    color: #0d0d0d !important;
+  }
+
+  /* ── 29. MARQUEE ── */
+  [class*="InfiniteMarquee"],
+  [class*="marquee"] {
+    background: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  /* ── 30. BLOCKQUOTE / TESTIMONIALS ── */
+  blockquote {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    border-radius: 24px !important;
+  }
+
+  /* ── 31. ANIMATED COUNTER TEXT ── */
+  [class*="AnimatedCounter"] span,
+  [class*="OdometerCounter"] span {
+    color: #0d0d0d !important;
+  }
+
+  /* ── 32. VISITOR COUNTER ── */
+  [class*="VisitorCounter"] {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border-radius: 24px !important;
+  }
+
+  /* ── 33. HERO BENTO CLASSES ── */
+  .hero-bento-spin {
+    animation: hero-bento-spin 4s linear infinite;
+    background: conic-gradient(
+      from 0deg,
+      #ff6b6b,
+      #ff9f43,
+      #ffeaa7,
+      #a29bfe,
+      #fd79a8,
+      #ff6b6b
+    );
+  }
+  .hero-bento-ping {
+    animation: hero-bento-ping 2s ease-in-out infinite;
+  }
+  .hero-bento-cursor {
+    animation: hero-bento-blink 0.9s steps(1) infinite;
+  }
+  .hero-bento-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bento-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.18),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: hero-bento-shine-sweep 4s 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* ── 34. HERO SECTION — transparent on mobile ── */
+  #hero {
+    background: transparent !important;
+  }
+  #hero > div:first-child {
+    background: transparent !important;
+  }
+
+  /* ── 35. BIHAR MAP — boost visibility on aurora light theme ── */
+  #bihar-map .section-padding {
+    background: rgba(255, 255, 255, 0.45) !important;
+  }
+  #bihar-map svg path,
+  #bihar-map svg .rsm-geography {
+    fill-opacity: 1 !important;
+    stroke-opacity: 1 !important;
+  }
+  #bihar-map [class*="rounded-3xl"][class*="border"] {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(13, 13, 13, 0.08) !important;
+  }
+  #bihar-map [class*="bg-gradient-to-br"][class*="from-\\[\\#0d1b2e\\]"],
+  #bihar-map [class*="bg-gradient-to-br"][class*="from-white"] {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(13, 13, 13, 0.08) !important;
+  }
+
+  /* ── 36. SECTION SPACING — tighter on mobile ── */
+  .section-padding {
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  /* ── 37. SECTION DIVIDER — smaller on mobile ── */
+  [class*="SectionDivider"],
+  .section-divider-wrapper {
+    height: 24px !important;
+  }
+  [class*="SectionDivider"] svg,
+  .section-divider-wrapper svg {
+    height: 24px !important;
+  }
+}
+
+/* ═══════════════════════════════════
+   AURORA BACKGROUND BLOBS (mobile)
+   Applied via .aurora-bg-mobile class
+   ═══════════════════════════════════ */
+@media (max-width: 767px) {
+  .aurora-blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(55px);
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .aurora-blob-1 {
+    width: 220px;
+    height: 220px;
+    top: -50px;
+    left: -50px;
+    background: #ff6b6b;
+    opacity: 0.35;
+    animation: aurora-blob-1 12s ease-in-out infinite;
+  }
+  .aurora-blob-2 {
+    width: 200px;
+    height: 200px;
+    top: -30px;
+    right: -30px;
+    background: #a29bfe;
+    opacity: 0.35;
+    animation: aurora-blob-2 15s ease-in-out infinite;
+  }
+  .aurora-blob-3 {
+    width: 180px;
+    height: 180px;
+    top: 40%;
+    left: 50%;
+    background: #fd79a8;
+    opacity: 0.2;
+    animation: aurora-blob-3 10s ease-in-out infinite;
+  }
+  .aurora-blob-4 {
+    width: 260px;
+    height: 180px;
+    bottom: -30px;
+    left: -30px;
+    background: #ffeaa7;
+    opacity: 0.4;
+    animation: aurora-blob-4 18s ease-in-out infinite;
+  }
+  .aurora-blob-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(248, 244, 240, 0.55);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Hide aurora blobs on desktop */
+@media (min-width: 768px) {
+  .aurora-blob,
+  .aurora-blob-overlay {
+    display: none !important;
+  }
+}

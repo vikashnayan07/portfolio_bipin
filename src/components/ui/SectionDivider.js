@@ -19,7 +19,7 @@ const SectionDivider = ({ flip = false }) => {
       className={`relative w-full overflow-hidden select-none pointer-events-none ${
         flip ? "rotate-180" : ""
       }`}
-      style={{ height: 60 }}
+      style={{ height: 20 }}
     >
       <motion.svg
         viewBox="0 0 1440 60"

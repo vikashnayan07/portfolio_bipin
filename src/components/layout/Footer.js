@@ -7,7 +7,7 @@ import {
   FaTwitter,
   FaInstagram,
   FaEnvelope,
-  FaHeart,
+  FaWhatsapp,
 } from "react-icons/fa";
 
 const socialLinks = [
@@ -28,10 +28,19 @@ const socialLinks = [
   },
   {
     icon: <FaInstagram />,
-    href: "https://instagram.com/bipinkumar",
+    href: "https://www.instagram.com/oberoy.bipin76/",
     label: "Instagram",
   },
-  { icon: <FaEnvelope />, href: "mailto:bipin@example.com", label: "Email" },
+  {
+    icon: <FaEnvelope />,
+    href: "mailto:kumarbipin76211@gmail.com",
+    label: "Email",
+  },
+  {
+    icon: <FaWhatsapp />,
+    href: "https://wa.me/917643044297",
+    label: "WhatsApp",
+  },
 ];
 
 const Footer = () => {
@@ -39,7 +48,7 @@ const Footer = () => {
 
   return (
     <footer
-      className={`relative py-12 px-6 md:px-12 lg:px-24 ${
+      className={`relative py-8 md:py-12 px-4 md:px-12 lg:px-24 ${
         darkMode
           ? "bg-navy border-t border-saffron/10"
           : "bg-gray-50 border-t border-gray-200"
@@ -97,8 +106,7 @@ const Footer = () => {
               darkMode ? "text-gray-400" : "text-gray-500"
             }`}
           >
-            &copy; {new Date().getFullYear()} Bipin Kumar. Built with
-            <FaHeart className="text-red-500 inline mx-1" />& React
+            &copy; 2026 Copyright Reserved || Vikash Nayan and Team
           </p>
 
           <div className="flex items-center space-x-6">

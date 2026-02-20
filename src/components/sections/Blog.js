@@ -138,7 +138,7 @@ const FeaturedPost = ({ post }) => {
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.7 }}
-      className="mb-12"
+      className="mb-8 md:mb-12"
     >
       <motion.div
         whileHover={{ y: -4 }}
@@ -153,7 +153,7 @@ const FeaturedPost = ({ post }) => {
         <div className="md:flex">
           {/* Left visual */}
           <div
-            className={`md:w-2/5 p-8 flex items-center justify-center relative overflow-hidden
+            className={`md:w-2/5 p-5 md:p-8 flex items-center justify-center relative overflow-hidden
             ${darkMode ? "bg-navy-lighter/50" : "bg-gray-50"}`}
           >
             {/* Blurred background glow */}
@@ -179,7 +179,7 @@ const FeaturedPost = ({ post }) => {
           </div>
 
           {/* Right content */}
-          <div className="md:w-3/5 p-6 md:p-8 flex flex-col justify-between">
+          <div className="md:w-3/5 p-4 md:p-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <span
@@ -524,7 +524,7 @@ const Blog = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.35 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
           >
             {regularPosts.map((post, index) => (
               <BlogCard key={post.id} post={post} index={index} />
@@ -553,10 +553,10 @@ const Blog = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-16"
+          className="mt-10 md:mt-16"
         >
           <div
-            className={`rounded-2xl p-8 text-center relative overflow-hidden ${
+            className={`rounded-2xl p-5 md:p-8 text-center relative overflow-hidden ${
               darkMode ? "glass" : "glass-light"
             }`}
           >

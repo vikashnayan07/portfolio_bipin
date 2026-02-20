@@ -173,7 +173,7 @@ const SkillCategoryCard = ({ category, index }) => {
       >
         {/* Card Header */}
         <div
-          className={`p-6 pb-4 border-b ${
+          className={`p-4 md:p-6 pb-3 md:pb-4 border-b ${
             darkMode ? "border-white/5" : "border-gray-100"
           }`}
         >
@@ -204,7 +204,7 @@ const SkillCategoryCard = ({ category, index }) => {
         </div>
 
         {/* Skills */}
-        <div className="p-6 pt-4">
+        <div className="p-4 md:p-6 pt-3 md:pt-4">
           {category.skills.map((skill, i) => (
             <SkillBar
               key={skill.name}
@@ -826,7 +826,7 @@ const Skills = () => {
         </motion.div>
 
         {/* Skill Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6 md:mt-8">
           {skillCategories.map((category, index) => (
             <SkillCategoryCard
               key={category.title}
@@ -841,7 +841,7 @@ const Skills = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center mt-16"
+          className="text-center mt-10 md:mt-16"
         >
           <blockquote
             className={`max-w-xl mx-auto px-6 py-4 rounded-2xl ${

@@ -8,6 +8,7 @@ import ScrollProgress from "./components/ui/ScrollProgress";
 import CursorGlow from "./components/ui/CursorGlow";
 import SectionDivider from "./components/ui/SectionDivider";
 import BackToTopRocket from "./components/ui/BackToTopRocket";
+import "./styles/aurora-mobile.css";
 
 /* ── Lazy-loaded sections for faster initial load ── */
 const About = lazy(() => import("./components/sections/About"));
@@ -19,11 +20,14 @@ const Footer = lazy(() => import("./components/layout/Footer"));
 const NoiseOverlay = lazy(() => import("./components/ui/NoiseOverlay"));
 const InfiniteMarquee = lazy(() => import("./components/ui/InfiniteMarquee"));
 const SpotlightEffect = lazy(() => import("./components/ui/SpotlightEffect"));
-const AIChatWidget = lazy(() => import("./components/ui/AIChatWidget"));
-const SectionTransition = lazy(() => import("./components/ui/SectionTransition"));
+const SectionTransition = lazy(
+  () => import("./components/ui/SectionTransition"),
+);
 const VisitorCounter = lazy(() => import("./components/ui/VisitorCounter"));
 const BiharMap = lazy(() => import("./components/sections/BiharMap"));
-const AchievementToasts = lazy(() => import("./components/ui/AchievementToasts"));
+const AchievementToasts = lazy(
+  () => import("./components/ui/AchievementToasts"),
+);
 const Testimonials = lazy(() => import("./components/sections/Testimonials"));
 const FloatingDock = lazy(() => import("./components/ui/FloatingDock"));
 
@@ -68,7 +72,6 @@ function App() {
           <CursorGlow />
           <BackToTopRocket />
           <NoiseOverlay opacity={0.04} />
-          <AIChatWidget />
           <AchievementToasts />
           <FloatingDock />
         </Suspense>
@@ -78,81 +81,88 @@ function App() {
       <div
         className={`${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-500`}
       >
+        {/* Aurora Background Blobs — mobile only */}
+        <div className="aurora-blob aurora-blob-1" />
+        <div className="aurora-blob aurora-blob-2" />
+        <div className="aurora-blob aurora-blob-3" />
+        <div className="aurora-blob aurora-blob-4" />
+        <div className="aurora-blob-overlay" />
+
         <Navbar />
         <main>
           <Hero />
           <Suspense fallback={null}>
-          <SectionDivider />
+            <SectionDivider />
 
-          {/* Infinite Marquee — skills ticker between Hero & About */}
-          <InfiniteMarquee />
+            {/* Infinite Marquee — skills ticker between Hero & About */}
+            <InfiniteMarquee />
 
-          <SectionTransition variant="scale-fade">
-            <SpotlightEffect>
-              <About />
-            </SpotlightEffect>
-          </SectionTransition>
+            <SectionTransition variant="scale-fade">
+              <SpotlightEffect>
+                <About />
+              </SpotlightEffect>
+            </SectionTransition>
 
-          <SectionDivider />
+            <SectionDivider />
 
-          <SectionTransition variant="clip-reveal" delay={0.1}>
-            <Projects />
-          </SectionTransition>
+            <SectionTransition variant="clip-reveal" delay={0.1}>
+              <Projects />
+            </SectionTransition>
 
-          <SectionDivider />
+            <SectionDivider />
 
-          {/* Second marquee before Skills (reverse direction) */}
-          <InfiniteMarquee
-            direction="right"
-            speed={25}
-            items={[
-              "Ethics & Integrity",
-              "Answer Writing",
-              "Indian Constitution",
-              "NCERT Foundation",
-              "Mock Tests",
-              "Daily Revision",
-              "Current Affairs",
-              "Bihar Special",
-              "Lesson Planning",
-              "Public Admin",
-            ]}
-          />
+            {/* Second marquee before Skills (reverse direction) */}
+            <InfiniteMarquee
+              direction="right"
+              speed={25}
+              items={[
+                "Ethics & Integrity",
+                "Answer Writing",
+                "Indian Constitution",
+                "NCERT Foundation",
+                "Mock Tests",
+                "Daily Revision",
+                "Current Affairs",
+                "Bihar Special",
+                "Lesson Planning",
+                "Public Admin",
+              ]}
+            />
 
-          <SectionTransition variant="rotate-in" delay={0.1}>
-            <SpotlightEffect>
-              <Skills />
-            </SpotlightEffect>
-          </SectionTransition>
+            <SectionTransition variant="rotate-in" delay={0.1}>
+              <SpotlightEffect>
+                <Skills />
+              </SpotlightEffect>
+            </SectionTransition>
 
-          <SectionDivider />
+            <SectionDivider />
 
-          <SectionTransition variant="slide-up" delay={0.1}>
-            <Blog />
-          </SectionTransition>
+            <SectionTransition variant="slide-up" delay={0.1}>
+              <Blog />
+            </SectionTransition>
 
-          <SectionDivider />
+            <SectionDivider />
 
-          {/* Bihar Interactive Map */}
-          <SectionTransition variant="scale-fade" delay={0.1}>
-            <BiharMap />
-          </SectionTransition>
+            {/* Bihar Interactive Map */}
+            <SectionTransition variant="scale-fade" delay={0.1}>
+              <BiharMap />
+            </SectionTransition>
 
-          <SectionDivider />
+            <SectionDivider />
 
-          {/* Testimonials */}
-          <SectionTransition variant="rotate-in" delay={0.1}>
-            <Testimonials />
-          </SectionTransition>
+            {/* Testimonials */}
+            <SectionTransition variant="rotate-in" delay={0.1}>
+              <Testimonials />
+            </SectionTransition>
 
-          <SectionDivider />
+            <SectionDivider />
 
-          {/* Visitor Counter — social proof */}
-          <VisitorCounter />
+            {/* Visitor Counter — social proof */}
+            <VisitorCounter />
 
-          <SectionTransition variant="scale-fade" delay={0.1}>
-            <Contact />
-          </SectionTransition>
+            <SectionTransition variant="scale-fade" delay={0.1}>
+              <Contact />
+            </SectionTransition>
           </Suspense>
         </main>
         <Suspense fallback={null}>

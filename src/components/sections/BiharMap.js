@@ -446,17 +446,24 @@ const BiharInteractiveMap = ({ className = "" }) => {
       const featured = districtLookup[geoName];
       const isActive = activeDistrict?.geoName === geoName;
 
+      const isMobileView = window.innerWidth < 768;
       const baseFill = featured
         ? featured.highlight
           ? darkMode
             ? "rgba(255,153,51,0.14)"
-            : "rgba(255,153,51,0.10)"
+            : isMobileView
+              ? "rgba(255,153,51,0.25)"
+              : "rgba(255,153,51,0.10)"
           : darkMode
             ? "rgba(255,153,51,0.07)"
-            : "rgba(255,153,51,0.05)"
+            : isMobileView
+              ? "rgba(255,153,51,0.18)"
+              : "rgba(255,153,51,0.05)"
         : darkMode
           ? "rgba(20,40,65,0.5)"
-          : "rgba(240,240,240,0.7)";
+          : isMobileView
+            ? "rgba(220,220,220,0.9)"
+            : "rgba(240,240,240,0.7)";
 
       const baseStroke = darkMode
         ? "rgba(255,153,51,0.15)"
@@ -526,6 +533,7 @@ const BiharInteractiveMap = ({ className = "" }) => {
   return (
     <section
       ref={sectionRef}
+      id="bihar-map"
       className={`section-padding relative overflow-hidden ${className}`}
     >
       {/* ═══ Deep atmospheric background ═══ */}

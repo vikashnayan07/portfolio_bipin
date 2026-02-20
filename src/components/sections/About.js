@@ -57,7 +57,7 @@ const TimelineCard = ({ milestone, index }) => {
       initial={{ opacity: 0, x: isLeft ? -60 : 60 }}
       animate={isInView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.7, delay: index * 0.15, ease: "easeOut" }}
-      className={`flex items-center mb-12 md:mb-16 ${
+      className={`flex items-center mb-8 md:mb-16 ${
         isLeft ? "md:flex-row" : "md:flex-row-reverse"
       } flex-col md:flex-row`}
     >
@@ -67,7 +67,7 @@ const TimelineCard = ({ milestone, index }) => {
       >
         <motion.div
           whileHover={{ scale: 1.03, y: -5 }}
-          className={`p-6 rounded-2xl transition-all duration-300 ${
+          className={`p-4 md:p-6 rounded-2xl md:rounded-2xl transition-all duration-300 ${
             darkMode
               ? "glass hover:shadow-glass-warm"
               : "glass-light hover:shadow-lg"
@@ -406,7 +406,7 @@ const About = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16 md:mb-20"
+          className="text-center mb-10 md:mb-20"
         >
           <h2
             className={`text-3xl md:text-5xl font-heading font-bold mb-4 ${
@@ -423,12 +423,12 @@ const About = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-3 gap-4 mb-20 auto-rows-fr"
+          className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-3 gap-3 md:gap-4 mb-20 auto-rows-auto md:auto-rows-fr"
         >
           {/* ── Cell 1: Hero Profile (spans 2 cols, 2 rows) ── */}
           <motion.div
             whileHover={{ scale: 1.01 }}
-            className={`md:col-span-2 md:row-span-2 rounded-3xl p-8 flex flex-col justify-between overflow-hidden relative group
+            className={`col-span-2 md:col-span-2 md:row-span-2 rounded-3xl p-6 md:p-8 flex flex-col justify-between overflow-hidden relative group
               ${darkMode ? "glass hover:shadow-glass-warm" : "glass-light hover:shadow-lg"}`}
           >
             <div className="relative z-10">
@@ -484,21 +484,21 @@ const About = () => {
           {/* ── Cell 2: Study Hours (animated counter) ── */}
           <motion.div
             whileHover={{ scale: 1.03, y: -4 }}
-            className={`rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden
+            className={`rounded-3xl p-4 md:p-6 flex flex-col items-center justify-center text-center relative overflow-hidden
               ${darkMode ? "glass hover:shadow-glass-warm" : "glass-light hover:shadow-lg"}`}
           >
             <HiLightningBolt
-              className={`text-3xl mb-2 ${darkMode ? "text-saffron" : "text-saffron-dark"}`}
+              className={`text-2xl md:text-3xl mb-1 md:mb-2 ${darkMode ? "text-saffron" : "text-saffron-dark"}`}
             />
             <OdometerCounter
               value={500}
               suffix="+"
               duration={2.5}
-              className="text-3xl md:text-4xl font-heading font-bold"
+              className="text-2xl md:text-4xl font-heading font-bold"
               digitClassName="gradient-text"
             />
             <span
-              className={`text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-[10px] md:text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
             >
               Study Hours
             </span>
@@ -507,17 +507,17 @@ const About = () => {
           {/* ── Cell 3: B.Ed Status ── */}
           <motion.div
             whileHover={{ scale: 1.03, y: -4 }}
-            className={`rounded-3xl p-6 flex flex-col items-center justify-center text-center
+            className={`rounded-3xl p-4 md:p-6 flex flex-col items-center justify-center text-center
               ${darkMode ? "glass hover:shadow-glass-warm" : "glass-light hover:shadow-lg"}`}
           >
             <FaGraduationCap
-              className={`text-3xl mb-2 ${darkMode ? "text-emerald-400" : "text-emerald-600"}`}
+              className={`text-2xl md:text-3xl mb-1 md:mb-2 ${darkMode ? "text-emerald-400" : "text-emerald-600"}`}
             />
-            <span className="text-2xl md:text-3xl font-heading font-bold gradient-text">
+            <span className="text-xl md:text-3xl font-heading font-bold gradient-text">
               B.Ed
             </span>
             <span
-              className={`text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-[10px] md:text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
             >
               In Progress
             </span>
@@ -526,19 +526,19 @@ const About = () => {
           {/* ── Cell 4: Location Badge ── */}
           <motion.div
             whileHover={{ scale: 1.03, y: -4 }}
-            className={`rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden
+            className={`rounded-3xl p-4 md:p-6 flex flex-col items-center justify-center text-center relative overflow-hidden
               ${darkMode ? "glass hover:shadow-glass-warm" : "glass-light hover:shadow-lg"}`}
           >
             <FaMapMarkerAlt
-              className={`text-2xl mb-2 ${darkMode ? "text-gold" : "text-saffron-dark"}`}
+              className={`text-xl md:text-2xl mb-1 md:mb-2 ${darkMode ? "text-gold" : "text-saffron-dark"}`}
             />
             <span
-              className={`text-lg font-heading font-bold ${darkMode ? "text-white" : "text-navy"}`}
+              className={`text-base md:text-lg font-heading font-bold ${darkMode ? "text-white" : "text-navy"}`}
             >
               Bihar, India
             </span>
             <span
-              className={`text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-[10px] md:text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
             >
               Land of Nalanda
             </span>
@@ -547,7 +547,7 @@ const About = () => {
           {/* ── Cell 5: Tagline / Quote (spans 2 cols) ── */}
           <motion.div
             whileHover={{ scale: 1.01 }}
-            className={`md:col-span-2 rounded-3xl p-6 flex items-center justify-center relative overflow-hidden
+            className={`col-span-2 rounded-3xl p-4 md:p-6 flex items-center justify-center relative overflow-hidden
               bg-gradient-to-r from-saffron/10 via-gold/5 to-saffron-light/10
               ${darkMode ? "border border-saffron/10" : "border border-saffron/15"}`}
           >
@@ -571,17 +571,17 @@ const About = () => {
           {/* ── Cell 6: BPSC Target ── */}
           <motion.div
             whileHover={{ scale: 1.03, y: -4 }}
-            className={`rounded-3xl p-6 flex flex-col items-center justify-center text-center
+            className={`rounded-3xl p-4 md:p-6 flex flex-col items-center justify-center text-center
               ${darkMode ? "glass hover:shadow-glass-warm" : "glass-light hover:shadow-lg"}`}
           >
             <FaAward
-              className={`text-3xl mb-2 ${darkMode ? "text-saffron" : "text-saffron-dark"}`}
+              className={`text-2xl md:text-3xl mb-1 md:mb-2 ${darkMode ? "text-saffron" : "text-saffron-dark"}`}
             />
-            <span className="text-2xl md:text-3xl font-heading font-bold gradient-text">
+            <span className="text-xl md:text-3xl font-heading font-bold gradient-text">
               BPSC
             </span>
             <span
-              className={`text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-[10px] md:text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
             >
               Target Exam
             </span>
@@ -590,19 +590,19 @@ const About = () => {
           {/* ── Cell 7: Passion ── */}
           <motion.div
             whileHover={{ scale: 1.03, y: -4 }}
-            className={`rounded-3xl p-6 flex flex-col items-center justify-center text-center
+            className={`rounded-3xl p-4 md:p-6 flex flex-col items-center justify-center text-center
               ${darkMode ? "glass hover:shadow-glass-warm" : "glass-light hover:shadow-lg"}`}
           >
             <FaHeart
-              className={`text-2xl mb-2 ${darkMode ? "text-rose-400" : "text-rose-500"}`}
+              className={`text-xl md:text-2xl mb-1 md:mb-2 ${darkMode ? "text-rose-400" : "text-rose-500"}`}
             />
             <span
-              className={`text-sm font-heading font-bold ${darkMode ? "text-white" : "text-navy"}`}
+              className={`text-xs md:text-sm font-heading font-bold ${darkMode ? "text-white" : "text-navy"}`}
             >
               Education & Service
             </span>
             <span
-              className={`text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              className={`text-[10px] md:text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
             >
               My Passion
             </span>
@@ -615,7 +615,7 @@ const About = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className={`grid grid-cols-2 md:grid-cols-4 gap-6 mb-20 p-6 md:p-8 rounded-3xl
+          className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-20 p-4 md:p-8 rounded-3xl
             ${
               darkMode
                 ? "glass border border-white/[0.06]"
