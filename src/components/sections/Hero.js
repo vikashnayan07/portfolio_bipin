@@ -1,4 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   motion,
   useScroll,
@@ -24,7 +30,12 @@ import MagneticButton from "../ui/MagneticButton";
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── Constants ── */
-const TYPING_WORDS = ["BPSC Aspirant", "Future Educator", "Dreamer", "Bihar Roots"];
+const TYPING_WORDS = [
+  "BPSC Aspirant",
+  "Future Educator",
+  "Dreamer",
+  "Bihar Roots",
+];
 
 /* ── Typing Effect (smooth) ── */
 const useTypingEffect = (speed = 100, delSpeed = 45, pause = 2200) => {
@@ -67,7 +78,7 @@ const useSmartGreeting = () => {
           ? "Good Afternoon"
           : h < 21
             ? "Good Evening"
-            : "Hello, Night Owl"
+            : "Hello, Night Owl",
     );
     try {
       if (localStorage.getItem("portfolio_visited")) setIsReturning(true);
@@ -97,6 +108,10 @@ const StyleInjector = () => (
       0% { transform: translateX(-100%) skewX(-15deg); }
       100% { transform: translateX(300%) skewX(-15deg); }
     }
+    @keyframes hero-ring-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     @keyframes hero-noise {
       0% { transform: translate3d(0, 0, 0); }
       25% { transform: translate3d(-5%, -5%, 0); }
@@ -123,22 +138,31 @@ const FloatingOrbs = ({ darkMode }) => {
   const orbs = useMemo(
     () => [
       {
-        size: 300, x: "15%", y: "20%",
+        size: 300,
+        x: "15%",
+        y: "20%",
         color: darkMode ? "rgba(255,153,51,0.06)" : "rgba(255,153,51,0.08)",
-        delay: 0, duration: 20,
+        delay: 0,
+        duration: 20,
       },
       {
-        size: 250, x: "70%", y: "55%",
+        size: 250,
+        x: "70%",
+        y: "55%",
         color: darkMode ? "rgba(255,215,0,0.05)" : "rgba(255,215,0,0.06)",
-        delay: 5, duration: 24,
+        delay: 5,
+        duration: 24,
       },
       {
-        size: 200, x: "40%", y: "70%",
+        size: 200,
+        x: "40%",
+        y: "70%",
         color: darkMode ? "rgba(244,162,97,0.04)" : "rgba(244,162,97,0.05)",
-        delay: 10, duration: 22,
+        delay: 10,
+        duration: 22,
       },
     ],
-    [darkMode]
+    [darkMode],
   );
 
   return (
@@ -148,8 +172,10 @@ const FloatingOrbs = ({ darkMode }) => {
           key={i}
           className="absolute rounded-full"
           style={{
-            width: orb.size, height: orb.size,
-            left: orb.x, top: orb.y,
+            width: orb.size,
+            height: orb.size,
+            left: orb.x,
+            top: orb.y,
             background: `radial-gradient(circle, ${orb.color} 0%, transparent 70%)`,
             filter: `blur(${orb.size * 0.3}px)`,
             animation: `hero-orb-float ${orb.duration}s ease-in-out infinite`,
@@ -229,7 +255,7 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
       lightX.set(50 + dx * 35);
       lightY.set(50 + dy * 35);
     },
-    [rotateX, rotateY, x, y, lightX, lightY, isMobile]
+    [rotateX, rotateY, x, y, lightX, lightY, isMobile],
   );
 
   const handleLeave = useCallback(() => {
@@ -244,6 +270,154 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
   /* Arched mirror SVG path for border outline */
   const archBorderRadius = "999px 999px 0 0";
 
+  /* Pre-compute useTransform to avoid conditional hook call */
+  const lightReflectionBg = useTransform(
+    [sLightX, sLightY],
+    ([lx, ly]) =>
+      `radial-gradient(ellipse 60% 50% at ${lx}% ${ly}%, rgba(255,255,255,${darkMode ? 0.05 : 0.1}) 0%, transparent 70%)`,
+  );
+
+  /* ── MOBILE: Clean circular portrait ── */
+  if (isMobile) {
+    return (
+      <motion.div
+        className="relative cursor-default"
+        initial={{ opacity: 0, scale: 0.85, filter: "blur(20px)" }}
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        transition={{ duration: 1.2, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
+        {/* Ambient glow behind photo */}
+        <div className="absolute inset-[-30%] pointer-events-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: darkMode
+                ? "radial-gradient(circle at 50% 50%, rgba(255,153,51,0.12) 0%, rgba(255,215,0,0.04) 45%, transparent 70%)"
+                : "radial-gradient(circle at 50% 50%, rgba(255,153,51,0.15) 0%, rgba(255,215,0,0.06) 45%, transparent 70%)",
+              filter: "blur(40px)",
+              contain: "layout paint",
+            }}
+          />
+        </div>
+
+        {/* Main circular photo container */}
+        <motion.div
+          style={{ scale: scrollScale }}
+          className="relative w-[220px] h-[220px]"
+        >
+          {/* Rotating gradient ring */}
+          <div
+            className="absolute -inset-[3px] rounded-full"
+            style={{
+              background: "conic-gradient(from 0deg, rgba(255,153,51,0.5), rgba(255,215,0,0.3), rgba(255,153,51,0.1), rgba(255,215,0,0.3), rgba(255,153,51,0.5))",
+              animation: "hero-ring-spin 8s linear infinite",
+            }}
+          />
+
+          {/* Inner border gap */}
+          <div
+            className={`absolute inset-0 rounded-full ${darkMode ? "bg-[#060d1a]" : "bg-[#fafbfc]"}`}
+            style={{ margin: "2px" }}
+          />
+
+          {/* Glass frame behind photo */}
+          <div
+            className="absolute inset-0 rounded-full overflow-hidden"
+            style={{
+              margin: "4px",
+              boxShadow: darkMode
+                ? "0 20px 50px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)"
+                : "0 20px 50px -10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)",
+            }}
+          >
+            <div className={`absolute inset-0 backdrop-blur-xl ${darkMode ? "bg-white/[0.04]" : "bg-white/60"}`} />
+          </div>
+
+          {/* Photo */}
+          <div className="absolute inset-0 rounded-full overflow-hidden" style={{ margin: "5px" }}>
+            <img
+              src="/rehman.jpeg"
+              alt="Bipin Kumar"
+              className="w-full h-full object-cover object-top"
+              draggable="false"
+              loading="eager"
+              style={{
+                filter: darkMode
+                  ? "drop-shadow(0 8px 20px rgba(0,0,0,0.3))"
+                  : "drop-shadow(0 8px 20px rgba(0,0,0,0.08))",
+              }}
+            />
+          </div>
+
+          {/* Subtle glass overlay */}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              margin: "5px",
+              background: darkMode
+                ? "linear-gradient(160deg, rgba(255,255,255,0.06) 0%, transparent 40%, transparent 70%, rgba(6,13,26,0.12) 100%)"
+                : "linear-gradient(160deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 70%, rgba(250,251,252,0.1) 100%)",
+            }}
+          />
+
+          {/* Online status dot */}
+          <div
+            className="absolute bottom-3 right-3 z-20"
+          >
+            <div className="relative">
+              <span className="absolute inset-0 w-3.5 h-3.5 rounded-full bg-emerald-400/40 animate-ping" />
+              <span className="relative block w-3.5 h-3.5 rounded-full bg-emerald-400 border-2"
+                style={{ borderColor: darkMode ? "#060d1a" : "#fafbfc" }}
+              />
+            </div>
+          </div>
+
+          {/* BPSC badge — bottom center */}
+          <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 1.8, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute -bottom-5 left-1/2 -translate-x-1/2 z-30"
+          >
+            <div
+              className={`px-4 py-2 rounded-full backdrop-blur-2xl border
+                ${darkMode
+                  ? "bg-[#060d1a]/80 border-white/[0.1] shadow-lg shadow-black/30"
+                  : "bg-white/80 border-white/60 shadow-lg shadow-gray-200/50"
+                }`}
+            >
+              <span className="text-[10px] font-heading font-bold tracking-[0.15em] uppercase bg-gradient-to-r from-saffron to-gold bg-clip-text text-transparent">
+                BPSC 2026
+              </span>
+            </div>
+          </motion.div>
+
+          {/* B.Ed badge — top-left */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 2.1, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute -top-2 -left-2 z-30"
+          >
+            <div
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full backdrop-blur-2xl border
+                ${darkMode
+                  ? "bg-[#060d1a]/80 border-white/[0.1] shadow-lg shadow-black/30"
+                  : "bg-white/80 border-white/60 shadow-lg shadow-gray-200/50"
+                }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className={`text-[8px] font-body font-medium tracking-wider uppercase ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                B.Ed
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  /* ── DESKTOP: Arched mirror 3D photo ── */
   return (
     <motion.div
       ref={containerRef}
@@ -255,7 +429,6 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
       transition={{ duration: 1.2, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-
       {/* ── Ambient glow ── */}
       <div className="absolute inset-[-25%] pointer-events-none">
         <div
@@ -274,19 +447,18 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
       {/* ── 3D Tilting Container ── */}
       <motion.div
         style={{
-          rotateX: isMobile ? 0 : sRotateX,
-          rotateY: isMobile ? 0 : sRotateY,
-          x: isMobile ? 0 : sX,
-          y: isMobile ? 0 : sY,
+          rotateX: sRotateX,
+          rotateY: sRotateY,
+          x: sX,
+          y: sY,
           transformStyle: "preserve-3d",
           scale: scrollScale,
         }}
-        className="relative w-[240px] h-[320px] sm:w-[280px] sm:h-[380px] md:w-[310px] md:h-[420px] lg:w-[340px] lg:h-[460px] xl:w-[370px] xl:h-[500px]"
+        className="relative w-[310px] h-[420px] lg:w-[340px] lg:h-[460px] xl:w-[370px] xl:h-[500px]"
       >
-
         {/* ═══ LAYER 1: Ground shadow ═══ */}
         <div
-          className="absolute hidden sm:block"
+          className="absolute"
           style={{
             bottom: "-10%",
             left: "15%",
@@ -332,12 +504,7 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
           <motion.div
             className="absolute inset-0 pointer-events-none"
             style={{
-              opacity: isMobile ? 0 : 1,
-              background: useTransform(
-                [sLightX, sLightY],
-                ([lx, ly]) =>
-                  `radial-gradient(ellipse 60% 50% at ${lx}% ${ly}%, rgba(255,255,255,${darkMode ? 0.05 : 0.1}) 0%, transparent 70%)`
-              ),
+              background: lightReflectionBg,
             }}
           />
 
@@ -346,7 +513,8 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
             <div
               className="absolute inset-0 w-[35%] h-full"
               style={{
-                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)",
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)",
                 animation: "hero-light-sweep 7s ease-in-out infinite",
                 animationDelay: "2s",
               }}
@@ -364,7 +532,8 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
               ? "linear-gradient(160deg, rgba(255,153,51,0.20), rgba(255,215,0,0.08), rgba(255,153,51,0.12))"
               : "linear-gradient(160deg, rgba(255,153,51,0.25), rgba(255,215,0,0.10), rgba(255,153,51,0.15))",
             padding: "2px",
-            WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMask:
+              "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
             WebkitMaskComposite: "xor",
             maskComposite: "exclude",
           }}
@@ -389,8 +558,10 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
                 filter: darkMode
                   ? "drop-shadow(0 18px 35px rgba(0,0,0,0.45)) drop-shadow(0 6px 14px rgba(0,0,0,0.25))"
                   : "drop-shadow(0 18px 35px rgba(0,0,0,0.12)) drop-shadow(0 6px 14px rgba(0,0,0,0.06))",
-                maskImage: "linear-gradient(to bottom, black 80%, transparent 100%)",
-                WebkitMaskImage: "linear-gradient(to bottom, black 80%, transparent 100%)",
+                maskImage:
+                  "linear-gradient(to bottom, black 80%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, black 80%, transparent 100%)",
               }}
             />
           </div>
@@ -420,7 +591,8 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
             right: "22%",
             height: "3px",
             transform: "translateZ(55px)",
-            background: "linear-gradient(90deg, transparent, rgba(255,153,51,0.45), rgba(255,215,0,0.35), transparent)",
+            background:
+              "linear-gradient(90deg, transparent, rgba(255,153,51,0.45), rgba(255,215,0,0.35), transparent)",
             filter: "blur(1px)",
           }}
         />
@@ -429,20 +601,25 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 1.8, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="absolute -bottom-3 -right-1 sm:-bottom-4 sm:-right-3 z-30"
+          transition={{
+            delay: 1.8,
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+          className="absolute -bottom-4 -right-3 z-30"
           style={{ transform: "translateZ(70px)" }}
         >
           <motion.div
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl backdrop-blur-2xl border
-              ${darkMode
-                ? "bg-white/[0.06] border-white/[0.1] shadow-2xl shadow-black/30"
-                : "bg-white/70 border-white/50 shadow-2xl shadow-gray-200/50"
+            className={`px-4 py-2.5 rounded-2xl backdrop-blur-2xl border
+              ${
+                darkMode
+                  ? "bg-white/[0.06] border-white/[0.1] shadow-2xl shadow-black/30"
+                  : "bg-white/70 border-white/50 shadow-2xl shadow-gray-200/50"
               }`}
           >
-            <span className="text-[9px] sm:text-[10px] font-heading font-bold tracking-[0.12em] uppercase bg-gradient-to-r from-saffron to-gold bg-clip-text text-transparent">
+            <span className="text-[10px] font-heading font-bold tracking-[0.12em] uppercase bg-gradient-to-r from-saffron to-gold bg-clip-text text-transparent">
               BPSC 2026
             </span>
           </motion.div>
@@ -452,22 +629,32 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
         <motion.div
           initial={{ opacity: 0, y: -20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 2.1, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="absolute top-4 -left-1 sm:top-2 sm:-left-3 z-30"
+          transition={{
+            delay: 2.1,
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+          className="absolute top-2 -left-3 z-30"
           style={{ transform: "translateZ(65px)" }}
         >
           <motion.div
             animate={{ y: [0, -3, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl backdrop-blur-2xl border
-              ${darkMode
-                ? "bg-white/[0.06] border-white/[0.1] shadow-2xl shadow-black/30"
-                : "bg-white/70 border-white/50 shadow-2xl shadow-gray-200/50"
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl backdrop-blur-2xl border
+              ${
+                darkMode
+                  ? "bg-white/[0.06] border-white/[0.1] shadow-2xl shadow-black/30"
+                  : "bg-white/70 border-white/50 shadow-2xl shadow-gray-200/50"
               }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span
-              className={`text-[8px] sm:text-[9px] font-body font-medium tracking-wider uppercase
+              className={`text-[9px] font-body font-medium tracking-wider uppercase
                 ${darkMode ? "text-gray-300" : "text-gray-600"}`}
             >
               B.Ed Student
@@ -485,9 +672,10 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
 const GlassNameCard = ({ darkMode, children }) => (
   <div
     className={`relative rounded-3xl p-6 sm:p-8 backdrop-blur-2xl border overflow-hidden
-      ${darkMode
-        ? "bg-white/[0.03] border-white/[0.06]"
-        : "bg-white/50 border-white/60"
+      ${
+        darkMode
+          ? "bg-white/[0.03] border-white/[0.06]"
+          : "bg-white/50 border-white/60"
       }`}
     style={{
       boxShadow: darkMode
@@ -540,7 +728,7 @@ const Hero = () => {
       mouseX.set((e.clientX - rect.left) / rect.width);
       mouseY.set((e.clientY - rect.top) / rect.height);
     },
-    [mouseX, mouseY]
+    [mouseX, mouseY],
   );
 
   /* Name tilt */
@@ -555,7 +743,7 @@ const Hero = () => {
       nameRX.set(((e.clientY - r.top) / r.height - 0.5) * -10);
       nameRY.set(((e.clientX - r.left) / r.width - 0.5) * 10);
     },
-    [nameRX, nameRY]
+    [nameRX, nameRY],
   );
   const onNameLeave = useCallback(() => {
     nameRX.set(0);
@@ -574,7 +762,9 @@ const Hero = () => {
   const fadeUp = (d = 0) => ({
     hidden: { opacity: 0, y: 20, filter: "blur(8px)" },
     visible: {
-      opacity: 1, y: 0, filter: "blur(0px)",
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
       transition: { duration: 0.9, delay: d, ease: [0.25, 0.46, 0.45, 0.94] },
     },
   });
@@ -591,7 +781,9 @@ const Hero = () => {
       {/* ═══ BACKGROUND SYSTEM ═══ */}
       <div className="absolute inset-0 z-0">
         {/* Base */}
-        <div className={`absolute inset-0 ${darkMode ? "bg-[#060d1a]" : "bg-[#fafbfc]"}`} />
+        <div
+          className={`absolute inset-0 ${darkMode ? "bg-[#060d1a]" : "bg-[#fafbfc]"}`}
+        />
 
         {/* Subtle texture image */}
         <motion.div
@@ -615,7 +807,7 @@ const Hero = () => {
               ([sx, sy]) =>
                 `radial-gradient(ellipse 600px 500px at ${sx * 100}% ${sy * 100}%, ${
                   darkMode ? "rgba(255,153,51,0.03)" : "rgba(255,153,51,0.02)"
-                } 0%, transparent 70%)`
+                } 0%, transparent 70%)`,
             ),
           }}
         />
@@ -656,9 +848,10 @@ const Hero = () => {
               <motion.span
                 variants={fadeUp(0)}
                 className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-body font-medium tracking-[0.15em] uppercase mb-5
-                  ${darkMode
-                    ? "bg-white/[0.04] text-saffron/90 border border-white/[0.06]"
-                    : "bg-saffron/[0.06] text-saffron-dark border border-saffron/15"
+                  ${
+                    darkMode
+                      ? "bg-white/[0.04] text-saffron/90 border border-white/[0.06]"
+                      : "bg-saffron/[0.06] text-saffron-dark border border-saffron/15"
                   }`}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -716,7 +909,12 @@ const Hero = () => {
                       {"Kumar".split("").map((char, i) => (
                         <motion.span
                           key={`kumar-${i}`}
-                          initial={{ y: 80, opacity: 0, rotateX: 40, scale: 0.8 }}
+                          initial={{
+                            y: 80,
+                            opacity: 0,
+                            rotateX: 40,
+                            scale: 0.8,
+                          }}
                           animate={{ y: 0, opacity: 1, rotateX: 0, scale: 1 }}
                           transition={{
                             duration: 0.9,
@@ -727,7 +925,11 @@ const Hero = () => {
                           whileHover={{
                             scale: 1.15,
                             y: -4,
-                            transition: { type: "spring", stiffness: 500, damping: 15 },
+                            transition: {
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 15,
+                            },
                           }}
                         >
                           {char}
@@ -741,7 +943,11 @@ const Hero = () => {
                     className="h-[2px] mt-5 rounded-full overflow-hidden max-w-[120px]"
                     initial={{ scaleX: 0, opacity: 0 }}
                     animate={{ scaleX: 1, opacity: 1 }}
-                    transition={{ duration: 1.2, delay: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    transition={{
+                      duration: 1.2,
+                      delay: 1.2,
+                      ease: [0.25, 0.46, 0.45, 0.94],
+                    }}
                     style={{ transformOrigin: "left" }}
                   >
                     <div className="h-full w-full bg-gradient-to-r from-saffron/60 via-gold/40 to-transparent" />
@@ -763,7 +969,11 @@ const Hero = () => {
               </span>
               <motion.span
                 animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.7, repeat: Infinity, repeatType: "reverse" }}
+                transition={{
+                  duration: 0.7,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
                 className="inline-block w-[2px] h-[18px] ml-1 rounded-full bg-saffron/50"
               />
             </motion.div>
@@ -781,7 +991,8 @@ const Hero = () => {
                 <motion.span
                   key={r.label}
                   whileHover={{
-                    scale: 1.04, y: -1,
+                    scale: 1.04,
+                    y: -1,
                     transition: { type: "spring", stiffness: 400, damping: 15 },
                   }}
                   className={`px-3.5 py-1.5 rounded-full text-[10px] font-body font-medium tracking-[0.1em] uppercase border backdrop-blur-sm
@@ -800,7 +1011,9 @@ const Hero = () => {
                 ${darkMode ? "text-gray-600" : "text-gray-400"}`}
             >
               "From{" "}
-              <span className={`not-italic font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <span
+                className={`not-italic font-medium ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
                 Student
               </span>{" "}
               to{" "}
@@ -814,9 +1027,10 @@ const Hero = () => {
             <motion.div
               variants={fadeUp(0.65)}
               className={`rounded-2xl px-5 py-4 mb-8 border backdrop-blur-xl
-                ${darkMode
-                  ? "bg-white/[0.02] border-white/[0.05]"
-                  : "bg-white/40 border-white/50"
+                ${
+                  darkMode
+                    ? "bg-white/[0.02] border-white/[0.05]"
+                    : "bg-white/40 border-white/50"
                 }`}
               style={{
                 boxShadow: darkMode
@@ -831,7 +1045,9 @@ const Hero = () => {
                 Dedicated B.Ed student committed to cracking BPSC and serving
                 Bihar. Driven by{" "}
                 <span className="text-saffron/80 font-medium">knowledge</span>,{" "}
-                <span className={`font-medium ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                <span
+                  className={`font-medium ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+                >
                   perseverance
                 </span>
                 , and{" "}
@@ -848,7 +1064,8 @@ const Hero = () => {
                 <motion.a
                   href="#about"
                   whileHover={{
-                    scale: 1.03, y: -1,
+                    scale: 1.03,
+                    y: -1,
                     transition: { type: "spring", stiffness: 400, damping: 15 },
                   }}
                   whileTap={{ scale: 0.98 }}
@@ -867,15 +1084,17 @@ const Hero = () => {
                 <motion.a
                   href="#contact"
                   whileHover={{
-                    scale: 1.03, y: -1,
+                    scale: 1.03,
+                    y: -1,
                     transition: { type: "spring", stiffness: 400, damping: 15 },
                   }}
                   whileTap={{ scale: 0.98 }}
                   className={`px-7 py-3 rounded-full font-heading font-semibold text-sm border inline-block
                     backdrop-blur-sm transition-all duration-500
-                    ${darkMode
-                      ? "text-white/70 border-white/[0.1] hover:border-white/[0.2] hover:bg-white/[0.03]"
-                      : "text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-white/60"
+                    ${
+                      darkMode
+                        ? "text-white/70 border-white/[0.1] hover:border-white/[0.2] hover:bg-white/[0.03]"
+                        : "text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-white/60"
                     }`}
                 >
                   Let's Connect
@@ -891,8 +1110,8 @@ const Hero = () => {
         ═══════════════════════════════════════════════════════ */}
         <motion.div
           style={{ y: photoY }}
-          className="relative w-full lg:w-[48%] xl:w-[50%] min-h-[45vh] sm:min-h-[50vh] lg:min-h-screen order-1 lg:order-2
-            flex items-center justify-center pt-24 sm:pt-28 lg:pt-20 py-6 sm:py-0"
+          className="relative w-full lg:w-[48%] xl:w-[50%] min-h-[35vh] sm:min-h-[50vh] lg:min-h-screen order-1 lg:order-2
+            flex items-center justify-center pt-24 sm:pt-28 lg:pt-20 pb-4 sm:pb-0"
         >
           <MagneticPhoto darkMode={darkMode} scrollScale={photoScale} />
 
@@ -947,9 +1166,10 @@ const Hero = () => {
       {/* ═══ BOTTOM FADE ═══ */}
       <div
         className={`absolute bottom-0 left-0 right-0 h-32 z-[2] pointer-events-none
-          ${darkMode
-            ? "bg-gradient-to-t from-[#060d1a] via-[#060d1a]/60 to-transparent"
-            : "bg-gradient-to-t from-[#fafbfc] via-[#fafbfc]/60 to-transparent"
+          ${
+            darkMode
+              ? "bg-gradient-to-t from-[#060d1a] via-[#060d1a]/60 to-transparent"
+              : "bg-gradient-to-t from-[#fafbfc] via-[#fafbfc]/60 to-transparent"
           }`}
       />
     </section>
