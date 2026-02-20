@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
 import {
   FaGithub,
@@ -120,6 +121,16 @@ const Footer = () => {
             >
               Privacy
             </a>
+            <Link
+              to="/admin/login"
+              className={`font-body transition-colors duration-300 ${
+                darkMode
+                  ? "text-gray-400 hover:text-saffron"
+                  : "text-gray-500 hover:text-saffron-dark"
+              }`}
+            >
+              Admin
+            </Link>
             <a
               href="#hero"
               className={`font-body transition-colors duration-300 ${
