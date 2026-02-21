@@ -19,8 +19,8 @@ const { createClient } = require("@supabase/supabase-js");
 const FROM_EMAIL = "Bipin Kumar <help@bipinoberoy.me>";
 const REPLY_TO_EMAIL = "help@bipinoberoy.me";
 const SITE_NAME = "bipinoberoy.me";
-const SITE_URL = "https://bipinoberoy.me";
-const PROFILE_IMG = "https://bipinoberoy.me/rehman.jpeg";
+const SITE_URL = "https://www.bipinoberoy.me";
+const PROFILE_IMG = "https://www.bipinoberoy.me/rehman.jpeg";
 
 /* ── Premium Email Template ────────────────────────────── */
 function buildHtmlEmail(
@@ -76,7 +76,7 @@ function buildHtmlEmail(
                     <table role="presentation" cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="vertical-align:middle;padding-right:14px;">
-                          <img src="${PROFILE_IMG}" alt="BK" width="44" height="44" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #FF9933;" />
+                          <img src="${PROFILE_IMG}" alt="BK" width="44" height="44" style="width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid #FF9933;" />
                         </td>
                         <td style="vertical-align:middle;">
                           <p style="margin:0;font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:-0.3px;">Bipin Kumar</p>
@@ -164,13 +164,16 @@ function buildHtmlEmail(
           <!-- ▌ Divider -->
           <tr><td style="padding:0 40px;"><div style="height:1px;background:#eef0f4;"></div></td></tr>
 
-          <!-- ▌ Professional Signature — Two Column Layout -->
+          <!-- ▌ Professional Signature — Compact Layout -->
           <tr>
             <td style="padding:28px 40px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:3px solid #2d3a4a;padding-top:24px;">
+              <!-- Signature divider -->
+              <div style="height:3px;background:#2d3a4a;margin-bottom:20px;"></div>
+              <!-- Signature content — auto-width so image sits beside text -->
+              <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <!-- Left: Text content -->
-                  <td style="vertical-align:middle;padding-right:20px;">
+                  <td style="vertical-align:top;padding-right:20px;">
                     <p style="margin:0;font-size:18px;font-weight:700;color:#2d3a4a;font-family:'Segoe UI',Roboto,Arial,sans-serif;">Bipin Kumar</p>
                     <p style="margin:4px 0 0;font-size:13px;color:#2d3a4a;font-weight:600;">BPSC Aspirant &bull; Educator</p>
                     <div style="height:14px;"></div>
@@ -216,9 +219,9 @@ function buildHtmlEmail(
                       </tr>
                     </table>
                   </td>
-                  <!-- Right: Circular Profile Image (beside text) -->
-                  <td style="vertical-align:middle;width:130px;">
-                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="120" height="120" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #e0e0e0;display:block;" />
+                  <!-- Right: Circular Profile Image (beside text, not far right) -->
+                  <td style="vertical-align:top;padding-top:4px;">
+                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="110" height="110" style="width:110px;height:110px;border-radius:50%;object-fit:cover;object-position:top;border:3px solid #e0e0e0;display:block;" />
                   </td>
                 </tr>
               </table>
