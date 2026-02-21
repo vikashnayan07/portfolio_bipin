@@ -20,7 +20,7 @@ const FROM_EMAIL = "Bipin Kumar <help@bipinoberoy.me>";
 const REPLY_TO_EMAIL = "help@bipinoberoy.me";
 const SITE_NAME = "bipinoberoy.me";
 const SITE_URL = "https://bipinoberoy.me";
-const PROFILE_IMG = "https://bipinoberoy.me/IMG_20180505_065332.jpg";
+const PROFILE_IMG = "https://bipinoberoy.me/rehman.jpeg";
 
 /* ── Premium Email Template ────────────────────────────── */
 function buildHtmlEmail(
@@ -170,7 +170,7 @@ function buildHtmlEmail(
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:3px solid #2d3a4a;padding-top:24px;">
                 <tr>
                   <!-- Left: Text content -->
-                  <td style="vertical-align:top;width:65%;">
+                  <td style="vertical-align:middle;padding-right:20px;">
                     <p style="margin:0;font-size:18px;font-weight:700;color:#2d3a4a;font-family:'Segoe UI',Roboto,Arial,sans-serif;">Bipin Kumar</p>
                     <p style="margin:4px 0 0;font-size:13px;color:#2d3a4a;font-weight:600;">BPSC Aspirant &bull; Educator</p>
                     <div style="height:14px;"></div>
@@ -216,9 +216,9 @@ function buildHtmlEmail(
                       </tr>
                     </table>
                   </td>
-                  <!-- Right: Circular Profile Image -->
-                  <td style="vertical-align:top;width:35%;text-align:right;">
-                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="100" height="100" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #e8e8e8;display:inline-block;" />
+                  <!-- Right: Circular Profile Image (beside text) -->
+                  <td style="vertical-align:middle;width:130px;">
+                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="120" height="120" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #e0e0e0;display:block;" />
                   </td>
                 </tr>
               </table>

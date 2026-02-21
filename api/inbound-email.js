@@ -1,36 +1,23 @@
 /**
  * Vercel Serverless Function — POST /api/inbound-email
  *
- * Resend Inbound Webhook Handler:
- * 1. Receives inbound email forwarded by Resend webhook
- * 2. Extracts ticket ID from email subject (pattern: [TKT-XXXXXXXX])
- * 3. Saves user reply to the `replies` table
- * 4. Updates contact_messages status to 'user_replied'
+ * Resend Inbound Webhook Handler
+ * Receives email.received events and saves user replies to Supabase.
  *
- * Environment variables required:
- *   RESEND_WEBHOOK_SECRET   — Resend webhook signing secret
- *   SUPABASE_URL            — Supabase project URL
- *   SUPABASE_SERVICE_KEY    — Supabase service_role key
+ * Env vars: SUPABASE_URL, SUPABASE_SERVICE_KEY, RESEND_WEBHOOK_SECRET (optional)
  */
 
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
 
-/* ── Helpers ───────────────────────────────────────────── */
-
-/**
- * Extract ticket ID from email subject line
- * Matches patterns like: Re: Some Subject [TKT-ABC12345]
- */
+/* ── Extract ticket ID from subject: [TKT-XXXXXXXX] ── */
 function extractTicketId(subject) {
   if (!subject) return null;
   const match = subject.match(/\[(TKT-[A-Z0-9]+)\]/i);
   return match ? match[1].toUpperCase() : null;
 }
 
-/**
- * Strip HTML tags and extract plain text from email body
- */
+/* ── Strip HTML to plain text ── */
 function stripHtml(html) {
   if (!html) return "";
   return html
@@ -46,158 +33,186 @@ function stripHtml(html) {
     .trim();
 }
 
-/**
- * Extract the user's actual reply, stripping quoted content
- * Looks for common email reply separators
- */
+/* ── Extract reply body, strip quoted content ── */
 function extractReplyBody(text) {
   if (!text) return "";
-
-  // Common reply separators
   const separators = [
-    /^>+ .*/m, // Quoted lines starting with >
-    /^On .+ wrote:$/m, // "On ... wrote:"
-    /^-{3,}\s*Original Message\s*-{3,}/im, // --- Original Message ---
-    /^From: .+$/m, // From: header in quoted
-    /^Sent: .+$/m, // Sent: header
-    /^_{3,}/m, // ___ separator
+    /^>+ .*/m,
+    /^On .+ wrote:$/m,
+    /^-{3,}\s*Original Message\s*-{3,}/im,
+    /^From: .+$/m,
+    /^Sent: .+$/m,
+    /^_{3,}/m,
   ];
-
-  let cleanText = text;
+  let clean = text;
   for (const sep of separators) {
-    const idx = cleanText.search(sep);
+    const idx = clean.search(sep);
     if (idx > 0) {
-      cleanText = cleanText.substring(0, idx);
+      clean = clean.substring(0, idx);
       break;
     }
   }
-
-  return cleanText.trim();
+  return clean.trim();
 }
 
-/**
- * Verify Resend webhook signature (svix)
- */
-function verifyWebhookSignature(payload, headers, secret) {
-  if (!secret) return true; // Skip if no secret configured
+/* ── Extract sender email from various Resend formats ── */
+function extractFromEmail(from) {
+  if (!from) return "";
+  // String: "user@example.com" or "Name <user@example.com>"
+  if (typeof from === "string") {
+    const angleMatch = from.match(/<([^>]+)>/);
+    if (angleMatch) return angleMatch[1].toLowerCase();
+    if (from.includes("@")) return from.trim().toLowerCase();
+    return "";
+  }
+  // Array: [{ address: "...", name: "..." }] or ["user@example.com"]
+  if (Array.isArray(from) && from.length > 0) {
+    const first = from[0];
+    if (typeof first === "string") return first.toLowerCase();
+    if (first && first.address) return first.address.toLowerCase();
+    if (first && first.email) return first.email.toLowerCase();
+  }
+  // Object: { address: "..." }
+  if (from.address) return from.address.toLowerCase();
+  if (from.email) return from.email.toLowerCase();
+  return "";
+}
 
+/* ── Verify Resend webhook signature (svix) ── */
+function verifySignature(rawBody, headers, secret) {
+  if (!secret) return true;
   const svixId = headers["svix-id"];
   const svixTimestamp = headers["svix-timestamp"];
   const svixSignature = headers["svix-signature"];
+  if (!svixId || !svixTimestamp || !svixSignature) return false;
 
-  if (!svixId || !svixTimestamp || !svixSignature) {
-    return false;
-  }
-
-  // Check timestamp (within 5 minutes)
   const now = Math.floor(Date.now() / 1000);
   const ts = parseInt(svixTimestamp, 10);
-  if (Math.abs(now - ts) > 300) {
-    return false;
-  }
+  if (Math.abs(now - ts) > 300) return false;
 
-  // Compute expected signature
-  const toSign = `${svixId}.${svixTimestamp}.${typeof payload === "string" ? payload : JSON.stringify(payload)}`;
+  const toSign = `${svixId}.${svixTimestamp}.${rawBody}`;
   const secretBytes = Buffer.from(secret.split("_").pop(), "base64");
-  const expectedSig = crypto
+  const expected = crypto
     .createHmac("sha256", secretBytes)
     .update(toSign)
     .digest("base64");
 
-  // Check against provided signatures (can be multiple, space-separated)
-  const signatures = svixSignature.split(" ");
-  return signatures.some((sig) => {
-    const sigValue = sig.split(",").pop();
-    return sigValue === expectedSig;
+  return svixSignature.split(" ").some((sig) => {
+    const val = sig.split(",").pop();
+    return val === expected;
   });
 }
 
-/* ── Main Handler ──────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════
+   HANDLER — Returns JSON, never redirects
+   ══════════════════════════════════════════════════════════ */
 module.exports = async function handler(req, res) {
-  /* ── Handle CORS preflight ── */
+  // Immediately set response headers to prevent any redirect
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+
+  // CORS preflight
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, svix-id, svix-timestamp, svix-signature");
-    return res.status(200).end();
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    return res.status(200).json({ ok: true });
   }
 
-  /* ── Only allow POST ── */
+  // Health check via GET (lets you test in browser)
+  if (req.method === "GET") {
+    return res.status(200).json({
+      status: "ok",
+      endpoint: "inbound-email webhook",
+      method: "POST required for webhook events",
+    });
+  }
+
+  // Only POST from here
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(200).json({ error: "Use POST", received: true });
   }
 
-  /* ── Prevent any redirect — respond immediately with JSON headers ── */
-  res.setHeader("Content-Type", "application/json");
-
-  /* ── Validate env vars ── */
   const { SUPABASE_URL, SUPABASE_SERVICE_KEY, RESEND_WEBHOOK_SECRET } =
     process.env;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    console.error("Missing Supabase env vars");
-    return res.status(500).json({ error: "Server configuration error" });
+    console.error("[inbound-email] Missing SUPABASE env vars");
+    return res.status(200).json({ error: "Config error", received: true });
   }
 
-  /* ── Verify webhook signature ── */
-  if (RESEND_WEBHOOK_SECRET) {
-    const isValid = verifyWebhookSignature(
-      req.body,
-      req.headers,
-      RESEND_WEBHOOK_SECRET,
-    );
-    if (!isValid) {
-      console.error("Invalid webhook signature");
-      return res.status(401).json({ error: "Invalid signature" });
-    }
-  }
+  // Log incoming request for debugging
+  console.log("[inbound-email] Received webhook:", {
+    method: req.method,
+    contentType: req.headers["content-type"],
+    hasBody: !!req.body,
+    bodyKeys: req.body ? Object.keys(req.body) : [],
+  });
 
   try {
-    const event = req.body;
+    const body = req.body || {};
 
-    // Resend sends events with a "type" field
-    // For inbound emails, the type is "email.received"
-    if (event.type && event.type !== "email.received") {
-      // Acknowledge non-inbound events silently
-      return res.status(200).json({ received: true, skipped: event.type });
+    // Verify signature if secret is configured
+    if (RESEND_WEBHOOK_SECRET) {
+      const rawBody =
+        typeof body === "string" ? body : JSON.stringify(body);
+      const valid = verifySignature(rawBody, req.headers, RESEND_WEBHOOK_SECRET);
+      if (!valid) {
+        console.error("[inbound-email] Signature verification failed");
+        // Return 200 to stop retries — log for debugging
+        return res
+          .status(200)
+          .json({ error: "Signature mismatch", received: true });
+      }
     }
 
-    // Extract email data — Resend puts it in event.data
-    const emailData = event.data || event;
-    const fromEmail = emailData.from?.[0]?.address || emailData.from || "";
-    const subject = emailData.subject || "";
-    const htmlBody = emailData.html || emailData.body || "";
-    const textBody = emailData.text || stripHtml(htmlBody);
-
-    if (!fromEmail || !textBody) {
-      console.error("Missing email data:", {
-        fromEmail: !!fromEmail,
-        textBody: !!textBody,
-      });
-      return res.status(400).json({ error: "Missing email data" });
+    // Skip non-inbound events
+    if (body.type && body.type !== "email.received") {
+      return res.status(200).json({ received: true, skipped: body.type });
     }
 
-    /* ── Extract ticket ID from subject ── */
+    // Extract email data from Resend payload
+    const data = body.data || body;
+    const fromEmail = extractFromEmail(data.from);
+    const subject = data.subject || "";
+    const textBody = data.text || "";
+    const htmlBody = data.html || data.body || "";
+    const plainText = textBody || stripHtml(htmlBody);
+
+    console.log("[inbound-email] Parsed:", {
+      from: fromEmail,
+      subject,
+      hasText: !!textBody,
+      hasHtml: !!htmlBody,
+      textLen: plainText.length,
+    });
+
+    if (!fromEmail) {
+      return res
+        .status(200)
+        .json({ received: true, error: "No sender email" });
+    }
+
+    // Extract ticket ID
     const ticketId = extractTicketId(subject);
+    console.log("[inbound-email] Ticket:", ticketId);
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    /* ── Find the original message ── */
+    // Find matching message — ticket ID first, then email fallback
     let message = null;
 
     if (ticketId) {
-      // Primary: match by ticket ID
-      const { data } = await supabase
+      const { data: found } = await supabase
         .from("contact_messages")
         .select("id, email, name, ticket_id")
         .eq("ticket_id", ticketId)
         .single();
-      message = data;
+      message = found;
     }
 
     if (!message) {
-      // Fallback: match by sender email (most recent non-deleted message)
-      const { data } = await supabase
+      const { data: found } = await supabase
         .from("contact_messages")
         .select("id, email, name, ticket_id")
         .ilike("email", fromEmail)
@@ -205,32 +220,36 @@ module.exports = async function handler(req, res) {
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
-      message = data;
+      message = found;
     }
 
     if (!message) {
-      console.log("No matching message found for:", { fromEmail, ticketId });
-      // Still return 200 to prevent Resend from retrying
-      return res
-        .status(200)
-        .json({
-          received: true,
-          matched: false,
-          reason: "No matching conversation",
-        });
+      console.log("[inbound-email] No match for:", fromEmail, ticketId);
+      return res.status(200).json({
+        received: true,
+        matched: false,
+        reason: "No matching conversation",
+      });
     }
 
-    /* ── Extract clean reply text ── */
-    const replyBody = extractReplyBody(textBody);
+    // Extract clean reply
+    let replyBody = extractReplyBody(plainText);
 
+    // Fallback: use subject if body empty
     if (!replyBody || replyBody.length < 2) {
-      return res
-        .status(200)
-        .json({ received: true, matched: true, skipped: "Empty reply body" });
+      if (subject) {
+        replyBody = subject
+          .replace(/^Re:\s*/i, "")
+          .replace(/\[TKT-[^\]]+\]/g, "")
+          .trim();
+      }
+      if (!replyBody || replyBody.length < 2) {
+        replyBody = "[User replied via email]";
+      }
     }
 
-    /* ── Deduplicate: check if this exact reply was already saved (within 60s) ── */
-    const { data: existingReplies } = await supabase
+    // Deduplicate within 60s
+    const { data: dupes } = await supabase
       .from("replies")
       .select("id")
       .eq("message_id", message.id)
@@ -239,43 +258,44 @@ module.exports = async function handler(req, res) {
       .gte("created_at", new Date(Date.now() - 60000).toISOString())
       .limit(1);
 
-    if (existingReplies && existingReplies.length > 0) {
+    if (dupes && dupes.length > 0) {
       return res.status(200).json({ received: true, duplicate: true });
     }
 
-    /* ── Save user reply to replies table ── */
-    const { error: insertError } = await supabase.from("replies").insert({
+    // Insert reply into replies table
+    const { error: insertErr } = await supabase.from("replies").insert({
       message_id: message.id,
       sender_type: "user",
       reply_text: replyBody,
     });
 
-    if (insertError) {
-      console.error("Failed to insert reply:", insertError);
-      return res.status(500).json({ error: "Failed to save reply" });
+    if (insertErr) {
+      console.error("[inbound-email] Insert error:", insertErr);
+      return res
+        .status(200)
+        .json({ error: "DB insert failed", received: true });
     }
 
-    /* ── Update message status to user_replied ── */
+    // Update message status to user_replied
     await supabase
       .from("contact_messages")
       .update({ status: "user_replied" })
       .eq("id", message.id);
 
-    console.log("Inbound email processed:", {
-      ticketId,
+    console.log("[inbound-email] SUCCESS:", {
       messageId: message.id,
+      ticketId: message.ticket_id,
       from: fromEmail,
+      replyLen: replyBody.length,
     });
 
     return res.status(200).json({
       success: true,
-      message: "User reply saved",
       messageId: message.id,
       ticketId: message.ticket_id,
     });
   } catch (err) {
-    console.error("Inbound email error:", err);
-    // Return 200 to prevent Resend from retrying on our errors
+    console.error("[inbound-email] Error:", err);
     return res.status(200).json({ error: "Internal error", received: true });
   }
 };

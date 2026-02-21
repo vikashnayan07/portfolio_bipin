@@ -2,27 +2,34 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "trailingSlash": false,
+  "cleanUrls": false,
+  "functions": {
+    "api/inbound-email.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/send-reply.js": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/track-visit.js": {
+      "memory": 256,
+      "maxDuration": 10
+    }
+  },
   "headers": [
     {
       "source": "/files/favicon-bk-v2.svg",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Content-Type",
-          "value": "image/svg+xml"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
+        { "key": "Content-Type", "value": "image/svg+xml" }
       ]
     },
     {
       "source": "/api/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        }
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
   ],
