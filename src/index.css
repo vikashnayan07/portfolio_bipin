@@ -270,7 +270,7 @@ body.light-mode {
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: rgba(255, 255, 255, 0.2);
+  color: #9ca3af;
   pointer-events: none;
   height: 0;
 }
@@ -278,17 +278,17 @@ body.light-mode {
   font-size: 1.25rem;
   font-weight: 700;
   margin: 1rem 0 0.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1f2937;
 }
 .ProseMirror blockquote {
   border-left: 3px solid #ff9933;
   padding-left: 1rem;
   margin: 0.75rem 0;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6b7280;
   font-style: italic;
 }
 .ProseMirror pre {
-  background: rgba(255, 255, 255, 0.05);
+  background: #f3f4f6;
   border-radius: 0.5rem;
   padding: 0.75rem;
   font-family: monospace;

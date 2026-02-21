@@ -116,24 +116,24 @@ const ProfileEditor = () => {
   }
 
   const inputClass =
-    "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-body placeholder-white/30 focus:border-saffron focus:ring-1 focus:ring-saffron/30 outline-none transition-all";
+    "w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body placeholder-gray-400 focus:border-saffron focus:ring-1 focus:ring-saffron/20 outline-none transition-all";
   const labelClass =
-    "block text-white/60 text-xs font-heading font-semibold mb-2 uppercase tracking-wider";
+    "block text-gray-500 text-xs font-heading font-semibold mb-2 uppercase tracking-wider";
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-heading font-bold text-white">Profile</h1>
-        <p className="text-white/40 text-sm font-body mt-1">
+        <h1 className="text-2xl font-heading font-bold text-gray-800">Profile</h1>
+        <p className="text-gray-400 text-sm font-body mt-1">
           Update your portfolio profile information
         </p>
       </div>
 
-      <div className="bg-white/5 border border-white/5 rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 space-y-6">
         {/* Photo Upload */}
         <div className="flex items-center gap-6">
           <div className="relative group">
-            <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/10 border-2 border-white/10">
+            <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 border-2 border-gray-200">
               {profile.photo_url ? (
                 <img
                   src={profile.photo_url}
@@ -141,7 +141,7 @@ const ProfileEditor = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-white/30 text-2xl font-bold">
+                <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl font-bold">
                   {profile.full_name?.charAt(0) || "B"}
                 </div>
               )}
@@ -153,9 +153,9 @@ const ProfileEditor = () => {
                 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             >
               {uploading ? (
-                <FaSpinner className="text-white animate-spin" />
+                <FaSpinner className="text-gray-800 animate-spin" />
               ) : (
-                <FaCamera className="text-white" />
+                <FaCamera className="text-gray-800" />
               )}
             </button>
             <input
@@ -167,10 +167,10 @@ const ProfileEditor = () => {
             />
           </div>
           <div>
-            <p className="text-white font-heading font-semibold text-sm">
+            <p className="text-gray-800 font-heading font-semibold text-sm">
               Profile Photo
             </p>
-            <p className="text-white/30 text-xs font-body mt-1">
+            <p className="text-gray-300 text-xs font-body mt-1">
               JPG, PNG, WebP. Max 5MB.
             </p>
           </div>
@@ -273,11 +273,7 @@ const ProfileEditor = () => {
               font-heading font-bold rounded-xl hover:shadow-lg hover:shadow-saffron/25 transition-all
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saving ? (
-              <FaSpinner className="animate-spin" />
-            ) : (
-              <FaSave />
-            )}
+            {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
             {saving ? "Saving..." : "Save Profile"}
           </button>
         </div>

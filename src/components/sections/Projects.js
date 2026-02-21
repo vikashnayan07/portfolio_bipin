@@ -1,10 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
+import { supabase } from "../../lib/supabase";
 import {
   FaBook,
-  FaScroll,
-  FaPenNib,
   FaLandmark,
   FaUsers,
   FaChalkboardTeacher,
@@ -13,80 +12,14 @@ import {
 } from "react-icons/fa";
 import { HiAcademicCap } from "react-icons/hi";
 
-/* ─── Project Data ─── */
-const projects = [
-  {
-    id: 1,
-    title: "BPSC Complete Notes",
-    category: "study",
-    description:
-      "Comprehensive study notes covering all BPSC Prelims & Mains topics — Indian History, Geography, Polity, Economy, and Bihar-specific GK.",
-    tags: ["General Studies", "Bihar GK", "Indian Polity"],
-    icon: <FaBook className="text-2xl" />,
-    color: "from-saffron to-saffron-light",
-    metrics: "200+ Pages | All Subjects",
-    link: "#",
-  },
-  {
-    id: 2,
-    title: "Bihar History Research",
-    category: "research",
-    description:
-      "In-depth research project on Bihar's role in India's freedom movement — from Champaran Satyagraha to the Quit India Movement in Bihar.",
-    tags: ["History", "Research", "Bihar Heritage"],
-    icon: <FaLandmark className="text-2xl" />,
-    color: "from-amber-500 to-orange-400",
-    metrics: "Academic Paper | Peer Reviewed",
-    link: "#",
-  },
-  {
-    id: 3,
-    title: "B.Ed Teaching Portfolio",
-    category: "education",
-    description:
-      "Collection of lesson plans, teaching methodologies, and classroom management strategies developed during B.Ed practicum.",
-    tags: ["Pedagogy", "Lesson Plans", "Teaching"],
-    icon: <FaChalkboardTeacher className="text-2xl" />,
-    color: "from-emerald-500 to-teal-400",
-    metrics: "25+ Lesson Plans | 3 Subjects",
-    link: "#",
-  },
-  {
-    id: 4,
-    title: "Current Affairs Digest",
-    category: "study",
-    description:
-      "Monthly compilation of important current affairs for BPSC, covering national & international events, government schemes, and Bihar developments.",
-    tags: ["Current Affairs", "Monthly Digest", "BPSC"],
-    icon: <FaScroll className="text-2xl" />,
-    color: "from-blue-500 to-cyan-400",
-    metrics: "12 Months | 500+ Events",
-    link: "#",
-  },
-  {
-    id: 5,
-    title: "Essay & Answer Writing",
-    category: "study",
-    description:
-      "Curated collection of model essays & answer writing practice for BPSC Mains — covering ethics, governance, social issues, and Bihar development.",
-    tags: ["Essay Writing", "Mains Prep", "Ethics"],
-    icon: <FaPenNib className="text-2xl" />,
-    color: "from-purple-500 to-pink-400",
-    metrics: "50+ Model Answers",
-    link: "#",
-  },
-  {
-    id: 6,
-    title: "Community Study Group",
-    category: "community",
-    description:
-      "Founded a peer study group of 30+ BPSC aspirants for collaborative learning, doubt sessions, and mock test discussions.",
-    tags: ["Community", "Peer Learning", "Leadership"],
-    icon: <FaUsers className="text-2xl" />,
-    color: "from-rose-500 to-red-400",
-    metrics: "30+ Members | Weekly Sessions",
-    link: "#",
-  },
+/* ─── Gradient palette assigned by index ─── */
+const gradientPalette = [
+  "from-saffron to-saffron-light",
+  "from-amber-500 to-orange-400",
+  "from-emerald-500 to-teal-400",
+  "from-blue-500 to-cyan-400",
+  "from-purple-500 to-pink-400",
+  "from-rose-500 to-red-400",
 ];
 
 const categories = [
@@ -103,6 +36,15 @@ const ProjectCard = ({ project, index }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const [isHovered, setIsHovered] = useState(false);
+
+  /* Normalize fields — works for both hardcoded & Supabase projects */
+  const color =
+    project.color || gradientPalette[index % gradientPalette.length];
+  const tags = project.tags || project.tech_stack || [];
+  const link = project.link || project.live_url || project.github_url || "#";
+  const metrics = project.metrics || (project.is_featured ? "⭐ Featured" : "");
+  const icon = project.icon || <FaBook className="text-2xl" />;
+  const category = project.category || "study";
 
   return (
     <motion.div
@@ -125,7 +67,18 @@ const ProjectCard = ({ project, index }) => {
         }`}
       >
         {/* Top gradient bar */}
-        <div className={`h-1.5 w-full bg-gradient-to-r ${project.color}`} />
+        <div className={`h-1.5 w-full bg-gradient-to-r ${color}`} />
+
+        {/* Cover image (if from Supabase) */}
+        {project.image_url && (
+          <div className="h-36 overflow-hidden">
+            <img
+              src={project.image_url}
+              alt={project.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+        )}
 
         {/* Content */}
         <div className="p-4 md:p-6">
@@ -135,9 +88,9 @@ const ProjectCard = ({ project, index }) => {
               animate={isHovered ? { rotate: [0, -10, 10, 0], scale: 1.1 } : {}}
               transition={{ duration: 0.5 }}
               className={`w-12 h-12 rounded-xl flex items-center justify-center
-                bg-gradient-to-r ${project.color} text-white shadow-lg`}
+                bg-gradient-to-r ${color} text-white shadow-lg`}
             >
-              {project.icon}
+              {icon}
             </motion.div>
             <span
               className={`text-xs font-heading font-semibold uppercase tracking-wider px-3 py-1 rounded-full ${
@@ -146,7 +99,7 @@ const ProjectCard = ({ project, index }) => {
                   : "bg-saffron/10 text-saffron-dark"
               }`}
             >
-              {project.category}
+              {category}
             </span>
           </div>
 
@@ -172,7 +125,7 @@ const ProjectCard = ({ project, index }) => {
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {project.tags.map((tag, i) => (
+            {tags.map((tag, i) => (
               <span
                 key={i}
                 className={`text-xs font-body px-2.5 py-1 rounded-full ${
@@ -187,17 +140,21 @@ const ProjectCard = ({ project, index }) => {
           </div>
 
           {/* Metrics */}
-          <p
-            className={`text-xs font-heading font-medium tracking-wide mb-4 ${
-              darkMode ? "text-saffron/70" : "text-saffron-dark/70"
-            }`}
-          >
-            📊 {project.metrics}
-          </p>
+          {metrics && (
+            <p
+              className={`text-xs font-heading font-medium tracking-wide mb-4 ${
+                darkMode ? "text-saffron/70" : "text-saffron-dark/70"
+              }`}
+            >
+              📊 {metrics}
+            </p>
+          )}
 
           {/* Action */}
           <motion.a
-            href={project.link}
+            href={link}
+            target={link.startsWith("http") ? "_blank" : undefined}
+            rel={link.startsWith("http") ? "noopener noreferrer" : undefined}
             whileHover={{ x: 5 }}
             className={`inline-flex items-center gap-2 text-sm font-heading font-semibold
               transition-colors duration-300 ${
@@ -231,11 +188,34 @@ const Projects = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const [activeFilter, setActiveFilter] = useState("all");
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  /* Fetch projects from Supabase on mount */
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .eq("is_deleted", false)
+          .order("sort_order", { ascending: true });
+        if (!error && data) {
+          setProjects(data);
+        }
+      } catch {
+        // Network error — projects stays empty
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   const filteredProjects =
     activeFilter === "all"
       ? projects
-      : projects.filter((p) => p.category === activeFilter);
+      : projects.filter((p) => (p.category || "study") === activeFilter);
 
   return (
     <section id="projects" className="section-padding relative">
@@ -304,16 +284,29 @@ const Projects = () => {
         </motion.div>
 
         {/* Project Grid */}
-        <motion.div
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project, index) => (
-              <ProjectCard key={project.id} project={project} index={index} />
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`h-64 rounded-2xl animate-pulse ${
+                  darkMode ? "bg-white/5" : "bg-gray-100"
+                }`}
+              />
             ))}
-          </AnimatePresence>
-        </motion.div>
+          </div>
+        ) : (
+          <motion.div
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredProjects.map((project, index) => (
+                <ProjectCard key={project.id} project={project} index={index} />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Empty state */}
         {filteredProjects.length === 0 && (

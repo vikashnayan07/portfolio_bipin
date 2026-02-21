@@ -1,134 +1,58 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import { supabase } from "../../lib/supabase";
 import TiltCard from "../ui/TiltCard";
 import {
   FaCalendarAlt,
   FaClock,
   FaArrowRight,
   FaBookOpen,
-  FaNewspaper,
-  FaChalkboard,
-  FaRegLightbulb,
   FaShareAlt,
   FaHeart,
   FaRegComment,
-  FaFeatherAlt,
 } from "react-icons/fa";
-import { HiTrendingUp, HiBookOpen } from "react-icons/hi";
+import { HiBookOpen } from "react-icons/hi";
 
-/* ─── Blog / Insights Data ─── */
-const blogPosts = [
-  {
-    id: 1,
-    title: "How I Structure My BPSC Preparation: A Complete Study Plan",
-    excerpt:
-      "Sharing my proven timetable strategy: subject-wise breakdown, revision cycles, and balancing daily current affairs with deep study.",
-    category: "BPSC Strategy",
-    date: "2025-05-18",
-    readTime: "8 min read",
-    icon: <FaBookOpen />,
-    gradient: "from-saffron to-saffron-light",
-    tags: ["BPSC", "Study Plan", "Strategy"],
-    likes: 124,
-    comments: 18,
-    featured: true,
-    coverEmoji: "📚",
-  },
-  {
-    id: 2,
-    title: "Bihar's Forgotten Heroes: Untold Stories from the Freedom Struggle",
-    excerpt:
-      "A deep-dive into Bihar's immense contribution to India's independence movement — from Champaran Satyagraha to the Quit India movement.",
-    category: "Bihar History",
-    date: "2025-04-28",
-    readTime: "12 min read",
-    icon: <FaNewspaper />,
-    gradient: "from-amber-500 to-yellow-400",
-    tags: ["Bihar History", "Freedom Struggle", "Research"],
-    likes: 98,
-    comments: 12,
-    featured: false,
-    coverEmoji: "🏛️",
-  },
-  {
-    id: 3,
-    title: "Understanding Pedagogy: Why Child-Centric Education Matters",
-    excerpt:
-      "My reflections from B.Ed — how constructivist pedagogy, activity-based learning, and inclusive classrooms can transform rural Bihar.",
-    category: "Education",
-    date: "2025-04-10",
-    readTime: "6 min read",
-    icon: <FaChalkboard />,
-    gradient: "from-emerald-500 to-teal-400",
-    tags: ["B.Ed", "Pedagogy", "Education"],
-    likes: 75,
-    comments: 9,
-    featured: false,
-    coverEmoji: "🎓",
-  },
-  {
-    id: 4,
-    title: "Current Affairs April 2025: Top 30 Questions for BPSC Prelims",
-    excerpt:
-      "A curated list of the most probable BPSC-relevant current affairs from April 2025, with one-liner answers and source links.",
-    category: "Current Affairs",
-    date: "2025-04-01",
-    readTime: "10 min read",
-    icon: <HiTrendingUp />,
-    gradient: "from-blue-500 to-cyan-400",
-    tags: ["Current Affairs", "BPSC", "Prelims"],
-    likes: 210,
-    comments: 32,
-    featured: false,
-    coverEmoji: "📰",
-  },
-  {
-    id: 5,
-    title: "Essay Writing Masterclass: How to Score 150+ in BPSC Mains",
-    excerpt:
-      "Structure, vocabulary, and argumentation techniques that I use to craft high-scoring essays on social, political, and ethical topics.",
-    category: "BPSC Strategy",
-    date: "2025-03-15",
-    readTime: "9 min read",
-    icon: <FaFeatherAlt />,
-    gradient: "from-rose-500 to-pink-400",
-    tags: ["Essay Writing", "BPSC Mains", "Tips"],
-    likes: 156,
-    comments: 24,
-    featured: false,
-    coverEmoji: "✍️",
-  },
-  {
-    id: 6,
-    title: "The Power of Group Study: Building a BPSC Community in Bihar",
-    excerpt:
-      "How I formed a 20-member study group, our weekly discussion format, and how peer learning accelerated my preparation.",
-    category: "Community",
-    date: "2025-03-01",
-    readTime: "5 min read",
-    icon: <FaRegLightbulb />,
-    gradient: "from-violet-500 to-purple-400",
-    tags: ["Community", "Study Group", "Motivation"],
-    likes: 88,
-    comments: 14,
-    featured: false,
-    coverEmoji: "🤝",
-  },
+/* ─── Helpers for Supabase posts ─── */
+const gradientPalette = [
+  "from-saffron to-saffron-light",
+  "from-amber-500 to-yellow-400",
+  "from-emerald-500 to-teal-400",
+  "from-blue-500 to-cyan-400",
+  "from-rose-500 to-pink-400",
+  "from-violet-500 to-purple-400",
 ];
+const emojiPalette = ["📚", "🏛️", "🎓", "📰", "✍️", "🤝", "💡", "📖"];
 
-const categories = [
-  "All",
-  "BPSC Strategy",
-  "Bihar History",
-  "Education",
-  "Current Affairs",
-  "Community",
-];
+/** Normalise a Supabase blog_post row to the shape the UI cards expect */
+const normalisePost = (post, index) => ({
+  ...post,
+  id: post.id,
+  title: post.title,
+  excerpt:
+    post.excerpt ||
+    (post.content
+      ? post.content.replace(/<[^>]*>/g, "").slice(0, 160) + "…"
+      : ""),
+  category: (post.tags && post.tags[0]) || "General",
+  date: post.created_at?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+  readTime: `${post.read_time || 5} min read`,
+  icon: <FaBookOpen />,
+  gradient: gradientPalette[index % gradientPalette.length],
+  tags: post.tags || [],
+  likes: post.views || 0,
+  comments: 0,
+  featured: index === 0,
+  coverEmoji: emojiPalette[index % emojiPalette.length],
+  coverImage: post.cover_image || "",
+});
 
 /* ─── Featured Post Card ─── */
 const FeaturedPost = ({ post }) => {
   const { darkMode } = useTheme();
+  const navigate = useNavigate();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
 
@@ -146,6 +70,7 @@ const FeaturedPost = ({ post }) => {
         className={`relative rounded-3xl overflow-hidden ${
           darkMode ? "glass" : "glass-light"
         } group cursor-pointer`}
+        onClick={() => navigate(`/blog/${post.slug}`)}
       >
         {/* Gradient Top Bar */}
         <div className={`h-1.5 bg-gradient-to-r ${post.gradient}`} />
@@ -161,13 +86,25 @@ const FeaturedPost = ({ post }) => {
               className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-10
               group-hover:opacity-20 transition-opacity duration-500`}
             />
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative z-10"
-            >
-              <span className="text-8xl md:text-9xl">{post.coverEmoji}</span>
-            </motion.div>
+            {post.coverImage ? (
+              <img
+                src={post.coverImage}
+                alt={post.title}
+                className="relative z-10 w-full h-full object-cover rounded-xl"
+              />
+            ) : (
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative z-10"
+              >
+                <span className="text-8xl md:text-9xl">{post.coverEmoji}</span>
+              </motion.div>
+            )}
             {/* Featured badge */}
             <div
               className="absolute top-4 left-4 px-3 py-1 rounded-full bg-gradient-to-r
@@ -278,6 +215,7 @@ const FeaturedPost = ({ post }) => {
 /* ─── Regular Blog Card ─── */
 const BlogCard = ({ post, index }) => {
   const { darkMode } = useTheme();
+  const navigate = useNavigate();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
 
@@ -293,6 +231,7 @@ const BlogCard = ({ post, index }) => {
           className={`h-full rounded-2xl overflow-hidden cursor-pointer group ${
             darkMode ? "glass" : "glass-light"
           }`}
+          onClick={() => navigate(`/blog/${post.slug}`)}
         >
           {/* Top Gradient Bar */}
           <div className={`h-1 bg-gradient-to-r ${post.gradient}`} />
@@ -306,17 +245,25 @@ const BlogCard = ({ post, index }) => {
               className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-5
             group-hover:opacity-15 transition-opacity duration-500`}
             />
-            <motion.span
-              animate={{ y: [0, -6, 0] }}
-              transition={{
-                duration: 3 + index * 0.3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="text-5xl relative z-10"
-            >
-              {post.coverEmoji}
-            </motion.span>
+            {post.coverImage ? (
+              <img
+                src={post.coverImage}
+                alt={post.title}
+                className="w-full h-full object-cover relative z-10"
+              />
+            ) : (
+              <motion.span
+                animate={{ y: [0, -6, 0] }}
+                transition={{
+                  duration: 3 + index * 0.3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="text-5xl relative z-10"
+              >
+                {post.coverEmoji}
+              </motion.span>
+            )}
 
             {/* Category badge */}
             <span
@@ -439,6 +386,36 @@ const Blog = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const [activeCategory, setActiveCategory] = useState("All");
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  /* Fetch published blog posts from Supabase on mount */
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("blog_posts")
+          .select("*")
+          .eq("is_published", true)
+          .eq("is_deleted", false)
+          .order("created_at", { ascending: false });
+        if (!error && data) {
+          setBlogPosts(data.map((p, i) => normalisePost(p, i)));
+        }
+      } catch {
+        // Network error — blogPosts stays empty
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
+  }, []);
+
+  /* Derive categories dynamically from posts */
+  const categories = [
+    "All",
+    ...Array.from(new Set(blogPosts.map((p) => p.category).filter(Boolean))),
+  ];
 
   const featuredPost = blogPosts.find((p) => p.featured);
   const regularPosts = blogPosts.filter((p) => {
@@ -512,40 +489,56 @@ const Blog = () => {
         </motion.div>
 
         {/* Featured Post */}
-        {activeCategory === "All" && featuredPost && (
+        {!loading && activeCategory === "All" && featuredPost && (
           <FeaturedPost post={featuredPost} />
         )}
 
-        {/* Regular Posts Grid */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeCategory}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.35 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
-          >
-            {regularPosts.map((post, index) => (
-              <BlogCard key={post.id} post={post} index={index} />
+        {/* Loading Skeleton */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`h-72 rounded-2xl animate-pulse ${
+                  darkMode ? "bg-white/5" : "bg-gray-100"
+                }`}
+              />
             ))}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ) : (
+          <>
+            {/* Regular Posts Grid */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeCategory}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.35 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+              >
+                {regularPosts.map((post, index) => (
+                  <BlogCard key={post.id} post={post} index={index} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
 
-        {/* Empty State */}
-        {regularPosts.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <span className="text-5xl mb-4 block">📝</span>
-            <p
-              className={`font-body ${darkMode ? "text-gray-400" : "text-gray-500"}`}
-            >
-              No posts yet in this category. Stay tuned!
-            </p>
-          </motion.div>
+            {/* Empty State */}
+            {regularPosts.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12"
+              >
+                <span className="text-5xl mb-4 block">📝</span>
+                <p
+                  className={`font-body ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                >
+                  No posts yet in this category. Stay tuned!
+                </p>
+              </motion.div>
+            )}
+          </>
         )}
 
         {/* Newsletter CTA */}

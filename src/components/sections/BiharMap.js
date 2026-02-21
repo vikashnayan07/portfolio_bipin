@@ -14,6 +14,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
+import useProfile from "../../hooks/useProfile";
 import { FaMapMarkerAlt, FaInfoCircle } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import {
@@ -403,6 +404,7 @@ const StatMini = ({ value, label, delay, darkMode }) => {
 ═══════════════════════════════════════════════ */
 const BiharInteractiveMap = ({ className = "" }) => {
   const { darkMode } = useTheme();
+  const { fullName, photoUrl } = useProfile();
   const [hoveredDistrict, setHoveredDistrict] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const sectionRef = useRef(null);
@@ -1095,8 +1097,8 @@ const BiharInteractiveMap = ({ className = "" }) => {
                     shadow-[0_0_10px_rgba(255,153,51,0.2)]"
                 >
                   <img
-                    src="/IMG_20180505_065332.jpg"
-                    alt="Bipin"
+                    src={photoUrl}
+                    alt={fullName}
                     className="w-full h-full object-cover"
                   />
                 </motion.div>
@@ -1105,7 +1107,7 @@ const BiharInteractiveMap = ({ className = "" }) => {
                     className={`text-xs font-body leading-relaxed ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                   >
                     <span className="text-saffron font-semibold">
-                      Bipin Kumar
+                      {fullName}
                     </span>{" "}
                     — Proudly rooted in Bihar, drawing daily inspiration from
                     its legacy of knowledge.

@@ -33,21 +33,27 @@ const AchievementToasts = lazy(
 );
 const Testimonials = lazy(() => import("./components/sections/Testimonials"));
 const FloatingDock = lazy(() => import("./components/ui/FloatingDock"));
+const BlogPost = lazy(() => import("./components/sections/BlogPost"));
 
 /* ── Admin components ── */
 const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const Dashboard = lazy(() => import("./components/admin/Dashboard"));
 const ProfileEditor = lazy(() => import("./components/admin/ProfileEditor"));
-const ProjectsManager = lazy(() => import("./components/admin/ProjectsManager"));
+const ProjectsManager = lazy(
+  () => import("./components/admin/ProjectsManager"),
+);
 const BlogManager = lazy(() => import("./components/admin/BlogManager"));
-const MessagesManager = lazy(() => import("./components/admin/MessagesManager"));
+const MessagesManager = lazy(
+  () => import("./components/admin/MessagesManager"),
+);
 const ProtectedRoute = lazy(() => import("./components/admin/ProtectedRoute"));
 
 function App() {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
+  const isBlogPost = location.pathname.startsWith("/blog/");
 
   const handleLoadComplete = useCallback(() => {
     setLoading(false);
@@ -116,6 +122,36 @@ function App() {
           </Routes>
         </Suspense>
       </AuthProvider>
+    );
+  }
+
+  /* ── Blog Post Reader ── */
+  if (isBlogPost) {
+    return (
+      <>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#fff",
+              color: "#1a1a2e",
+              border: "1px solid #e5e7eb",
+              fontSize: "13px",
+            },
+          }}
+        />
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-saffron border-t-transparent rounded-full animate-spin" />
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/blog/:slug" element={<BlogPost />} />
+          </Routes>
+        </Suspense>
+      </>
     );
   }
 

@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
+import useProfile from "../../hooks/useProfile";
 import {
   FaBook,
   FaGraduationCap,
@@ -395,6 +396,7 @@ const TimelineWithProgress = ({ milestones, darkMode }) => {
 
 const About = () => {
   const { darkMode } = useTheme();
+  const { photoUrl, fullName, location } = useProfile();
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
@@ -440,8 +442,8 @@ const About = () => {
                   style={{ perspective: "1000px" }}
                 >
                   <img
-                    src="/image.png"
-                    alt="Bipin Kumar"
+                    src={photoUrl}
+                    alt={fullName}
                     className="w-full h-full object-cover object-center"
                     draggable="false"
                   />
@@ -450,7 +452,7 @@ const About = () => {
                   <h3
                     className={`text-xl md:text-2xl font-heading font-bold ${darkMode ? "text-white" : "text-navy"}`}
                   >
-                    Bipin Kumar
+                    {fullName}
                   </h3>
                   <p
                     className={`text-sm ${darkMode ? "text-saffron-light" : "text-saffron-dark"}`}
@@ -535,7 +537,7 @@ const About = () => {
             <span
               className={`text-base md:text-lg font-heading font-bold ${darkMode ? "text-white" : "text-navy"}`}
             >
-              Bihar, India
+              {location}
             </span>
             <span
               className={`text-[10px] md:text-xs font-body mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}

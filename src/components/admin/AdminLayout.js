@@ -48,14 +48,14 @@ const AdminLayout = () => {
         { event: "INSERT", schema: "public", table: "contact_messages" },
         () => {
           setNewMsgCount((prev) => prev + 1);
-        }
+        },
       )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "contact_messages" },
         () => {
           fetchCount();
-        }
+        },
       )
       .subscribe();
 
@@ -73,40 +73,44 @@ const AdminLayout = () => {
     `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-body transition-all duration-200 ${
       isActive
         ? "bg-saffron/15 text-saffron font-semibold"
-        : "text-white/50 hover:text-white/80 hover:bg-white/5"
+        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
     }`;
 
   return (
-    <div className="min-h-screen bg-[#0A192F] flex">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/20 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static z-50 top-0 left-0 h-full w-64 bg-[#0d1f3c] border-r border-white/5
+        className={`fixed lg:static z-50 top-0 left-0 h-full w-64 bg-white border-r border-gray-100
           flex flex-col transition-transform duration-300 lg:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {/* Logo */}
-        <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
+        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-saffron to-gold flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-saffron to-gold flex items-center justify-center shadow-md shadow-saffron/20">
               <span className="text-white font-bold text-sm">BK</span>
             </div>
             <div>
-              <h2 className="text-white font-heading font-bold text-sm">Admin</h2>
-              <p className="text-white/30 text-[10px] font-body">Portfolio Manager</p>
+              <h2 className="text-gray-800 font-heading font-bold text-sm">
+                Admin
+              </h2>
+              <p className="text-gray-300 text-[10px] font-body">
+                Portfolio Manager
+              </p>
             </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-white/40 hover:text-white"
+            className="lg:hidden text-gray-400 hover:text-gray-800"
           >
             <FaTimes />
           </button>
@@ -125,7 +129,7 @@ const AdminLayout = () => {
               <item.icon className="text-base" />
               {item.label}
               {item.label === "Messages" && newMsgCount > 0 && (
-                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                <span className="ml-auto bg-red-500 text-gray-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                   {newMsgCount}
                 </span>
               )}
@@ -134,16 +138,16 @@ const AdminLayout = () => {
         </nav>
 
         {/* User / Sign out */}
-        <div className="px-3 py-4 border-t border-white/5">
+        <div className="px-3 py-4 border-t border-gray-100">
           <div className="flex items-center gap-3 px-4 py-2 mb-2">
             <div className="w-8 h-8 rounded-full bg-saffron/20 flex items-center justify-center">
               <FaUser className="text-saffron text-xs" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white/80 text-xs font-heading font-semibold truncate">
+              <p className="text-gray-700 text-xs font-heading font-semibold truncate">
                 {user?.email}
               </p>
-              <p className="text-white/30 text-[10px] font-body">Admin</p>
+              <p className="text-gray-300 text-[10px] font-body">Admin</p>
             </div>
           </div>
           <button
@@ -160,10 +164,10 @@ const AdminLayout = () => {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-[#0A192F]/80 backdrop-blur-xl border-b border-white/5 px-4 lg:px-8 py-3 flex items-center justify-between">
+        <header className="sticky top-0 z-30 bg-gray-50/80 backdrop-blur-xl border-b border-gray-100 px-4 lg:px-8 py-3 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-white/60 hover:text-white p-2"
+            className="lg:hidden text-gray-500 hover:text-gray-800 p-2"
           >
             <FaBars className="text-lg" />
           </button>
@@ -174,7 +178,7 @@ const AdminLayout = () => {
           <div className="relative">
             <button
               onClick={() => navigate("/admin/messages")}
-              className="text-white/40 hover:text-saffron transition-colors p-2 relative"
+              className="text-gray-400 hover:text-saffron transition-colors p-2 relative"
             >
               <FaBell className="text-lg" />
               {newMsgCount > 0 && (

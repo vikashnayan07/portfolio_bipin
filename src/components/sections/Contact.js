@@ -22,28 +22,29 @@ import {
   FaQuestionCircle,
 } from "react-icons/fa";
 import { HiSparkles, HiLightningBolt } from "react-icons/hi";
+import useProfile from "../../hooks/useProfile";
 
 /* ─────────── Data ─────────── */
 
-const contactInfo = [
+const buildContactInfo = (email, phone, location) => [
   {
     icon: <FaEnvelope className="text-lg" />,
     label: "Email",
-    value: "kumarbipin76211@gmail.com",
-    href: "mailto:kumarbipin76211@gmail.com",
+    value: email,
+    href: `mailto:${email}`,
     color: "from-saffron to-saffron-light",
   },
   {
     icon: <FaPhone className="text-lg" />,
     label: "Phone",
-    value: "+91 7643 044 297",
-    href: "tel:+917643044297",
+    value: phone,
+    href: `tel:${phone.replace(/\s/g, "")}`,
     color: "from-emerald-500 to-teal-400",
   },
   {
     icon: <FaMapMarkerAlt className="text-lg" />,
     label: "Location",
-    value: "Vaishali, Bihar, India",
+    value: location,
     href: null,
     color: "from-amber-500 to-orange-400",
   },
@@ -151,7 +152,7 @@ const faqItems = [
 ];
 
 /* ─────────── 3D-style Map Pin (CSS-driven) ─────────── */
-const MapPinVisual = () => {
+const MapPinVisual = ({ location = "Bihar, India" }) => {
   const { darkMode } = useTheme();
 
   return (
@@ -222,7 +223,7 @@ const MapPinVisual = () => {
                 : "bg-white/80 border border-saffron/30 text-saffron-dark"
             }`}
         >
-          📍 Bihar, India
+          📍 {location}
         </motion.div>
       </motion.div>
 
@@ -407,6 +408,7 @@ const PromptChip = ({ prompt, onClick, darkMode }) => (
 /* ═══════════ MAIN CONTACT SECTION ═══════════ */
 const Contact = () => {
   const { darkMode } = useTheme();
+  const { email, phone, location } = useProfile();
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const formRef = useRef(null);
@@ -604,12 +606,12 @@ const Contact = () => {
                 darkMode ? "glass" : "glass-light"
               }`}
             >
-              <MapPinVisual />
+              <MapPinVisual location={location} />
             </motion.div>
 
             {/* Contact Cards */}
             <div className="space-y-3">
-              {contactInfo.map((item, i) => (
+              {buildContactInfo(email, phone, location).map((item, i) => (
                 <ContactCard
                   key={item.label}
                   item={item}

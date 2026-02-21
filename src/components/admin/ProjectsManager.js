@@ -11,7 +11,6 @@ import {
   FaImage,
   FaExternalLinkAlt,
   FaGithub,
-  FaUndo,
   FaEdit,
   FaProjectDiagram,
 } from "react-icons/fa";
@@ -154,8 +153,10 @@ const ProjectsManager = () => {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-white">Projects</h1>
-          <p className="text-white/40 text-sm font-body mt-1">
+          <h1 className="text-2xl font-heading font-bold text-gray-800">
+            Projects
+          </h1>
+          <p className="text-gray-400 text-sm font-body mt-1">
             {projects.length} project{projects.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -173,10 +174,10 @@ const ProjectsManager = () => {
 
       {/* Project Form Modal */}
       {showForm && editProject && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-start justify-center pt-10 px-4 overflow-y-auto">
-          <div className="bg-[#0d1f3c] border border-white/10 rounded-2xl w-full max-w-2xl p-6 mb-10 space-y-5">
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-start justify-center pt-10 px-4 overflow-y-auto">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-xl w-full max-w-2xl p-6 mb-10 space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-heading font-bold text-white">
+              <h2 className="text-lg font-heading font-bold text-gray-800">
                 {editProject.id ? "Edit Project" : "New Project"}
               </h2>
               <button
@@ -184,7 +185,7 @@ const ProjectsManager = () => {
                   setShowForm(false);
                   setEditProject(null);
                 }}
-                className="text-white/40 hover:text-white"
+                className="text-gray-400 hover:text-gray-800"
               >
                 <FaTimes />
               </button>
@@ -192,7 +193,7 @@ const ProjectsManager = () => {
 
             {/* Image */}
             <div>
-              <label className="block text-white/60 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
+              <label className="block text-gray-500 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
                 Cover Image
               </label>
               <div className="flex items-center gap-4">
@@ -200,17 +201,17 @@ const ProjectsManager = () => {
                   <img
                     src={editProject.image_url}
                     alt=""
-                    className="w-32 h-20 rounded-xl object-cover border border-white/10"
+                    className="w-32 h-20 rounded-xl object-cover border border-gray-200"
                   />
                 ) : (
-                  <div className="w-32 h-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <FaImage className="text-white/20 text-xl" />
+                  <div className="w-32 h-20 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center">
+                    <FaImage className="text-gray-300 text-xl" />
                   </div>
                 )}
                 <button
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white/60 text-sm hover:bg-white/10 transition-colors"
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-500 text-sm hover:bg-gray-100 transition-colors"
                 >
                   {uploading ? (
                     <FaSpinner className="animate-spin" />
@@ -231,7 +232,7 @@ const ProjectsManager = () => {
             {/* Fields */}
             <div className="space-y-4">
               <div>
-                <label className="block text-white/60 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
+                <label className="block text-gray-500 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
                   Title *
                 </label>
                 <input
@@ -239,13 +240,13 @@ const ProjectsManager = () => {
                   onChange={(e) =>
                     setEditProject((p) => ({ ...p, title: e.target.value }))
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-body placeholder-white/30 focus:border-saffron outline-none transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body placeholder-gray-400 focus:border-saffron outline-none transition-all"
                   placeholder="Project title"
                 />
               </div>
 
               <div>
-                <label className="block text-white/60 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
+                <label className="block text-gray-500 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
                   Description
                 </label>
                 <textarea
@@ -257,19 +258,19 @@ const ProjectsManager = () => {
                     }))
                   }
                   rows={3}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-body placeholder-white/30 focus:border-saffron outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body placeholder-gray-400 focus:border-saffron outline-none transition-all resize-none"
                   placeholder="Brief description..."
                 />
               </div>
 
               <div>
-                <label className="block text-white/60 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
+                <label className="block text-gray-500 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
                   Tech Stack (comma-separated)
                 </label>
                 <input
                   value={editProject.tech_stack?.join(", ")}
                   onChange={(e) => handleTechStackChange(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-body placeholder-white/30 focus:border-saffron outline-none transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body placeholder-gray-400 focus:border-saffron outline-none transition-all"
                   placeholder="React, Tailwind, Supabase"
                 />
                 {editProject.tech_stack?.length > 0 && (
@@ -288,11 +289,11 @@ const ProjectsManager = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-white/60 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
+                  <label className="block text-gray-500 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
                     Live URL
                   </label>
                   <div className="relative">
-                    <FaExternalLinkAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-xs" />
+                    <FaExternalLinkAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs" />
                     <input
                       value={editProject.live_url}
                       onChange={(e) =>
@@ -301,17 +302,17 @@ const ProjectsManager = () => {
                           live_url: e.target.value,
                         }))
                       }
-                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-body placeholder-white/30 focus:border-saffron outline-none transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body placeholder-gray-400 focus:border-saffron outline-none transition-all"
                       placeholder="https://..."
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-white/60 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
+                  <label className="block text-gray-500 text-xs font-heading font-semibold mb-2 uppercase tracking-wider">
                     GitHub URL
                   </label>
                   <div className="relative">
-                    <FaGithub className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 text-xs" />
+                    <FaGithub className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs" />
                     <input
                       value={editProject.github_url}
                       onChange={(e) =>
@@ -320,7 +321,7 @@ const ProjectsManager = () => {
                           github_url: e.target.value,
                         }))
                       }
-                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-body placeholder-white/30 focus:border-saffron outline-none transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body placeholder-gray-400 focus:border-saffron outline-none transition-all"
                       placeholder="https://github.com/..."
                     />
                   </div>
@@ -340,10 +341,14 @@ const ProjectsManager = () => {
                     }
                     className="accent-saffron"
                   />
-                  <span className="text-white/60 text-sm font-body">Featured</span>
+                  <span className="text-gray-500 text-sm font-body">
+                    Featured
+                  </span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <label className="text-white/60 text-sm font-body">Order:</label>
+                  <label className="text-gray-500 text-sm font-body">
+                    Order:
+                  </label>
                   <input
                     type="number"
                     value={editProject.sort_order}
@@ -353,7 +358,7 @@ const ProjectsManager = () => {
                         sort_order: parseInt(e.target.value) || 0,
                       }))
                     }
-                    className="w-16 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-saffron"
+                    className="w-16 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 text-sm outline-none focus:border-saffron"
                   />
                 </div>
               </div>
@@ -366,7 +371,7 @@ const ProjectsManager = () => {
                   setShowForm(false);
                   setEditProject(null);
                 }}
-                className="px-4 py-2.5 text-white/40 text-sm font-body hover:text-white transition-colors"
+                className="px-4 py-2.5 text-gray-400 text-sm font-body hover:text-gray-800 transition-colors"
               >
                 Cancel
               </button>
@@ -377,11 +382,7 @@ const ProjectsManager = () => {
                   font-heading font-bold rounded-xl hover:shadow-lg hover:shadow-saffron/25 transition-all
                   disabled:opacity-50"
               >
-                {saving ? (
-                  <FaSpinner className="animate-spin" />
-                ) : (
-                  <FaSave />
-                )}
+                {saving ? <FaSpinner className="animate-spin" /> : <FaSave />}
                 {saving ? "Saving..." : "Save"}
               </button>
             </div>
@@ -391,9 +392,9 @@ const ProjectsManager = () => {
 
       {/* Projects List */}
       {projects.length === 0 ? (
-        <div className="bg-white/5 border border-white/5 rounded-2xl p-12 text-center">
-          <FaProjectDiagram className="text-white/10 text-4xl mx-auto mb-3" />
-          <p className="text-white/30 text-sm font-body">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center">
+          <FaProjectDiagram className="text-gray-200 text-4xl mx-auto mb-3" />
+          <p className="text-gray-300 text-sm font-body">
             No projects yet. Click "Add Project" to get started.
           </p>
         </div>
@@ -402,30 +403,30 @@ const ProjectsManager = () => {
           {projects.map((project) => (
             <div
               key={project.id}
-              className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center gap-4 hover:border-white/10 transition-colors"
+              className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 flex items-center gap-4 hover:border-gray-200 transition-colors"
             >
               {project.image_url ? (
                 <img
                   src={project.image_url}
                   alt=""
-                  className="w-20 h-14 rounded-xl object-cover border border-white/10 flex-shrink-0"
+                  className="w-20 h-14 rounded-xl object-cover border border-gray-200 flex-shrink-0"
                 />
               ) : (
-                <div className="w-20 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                  <FaImage className="text-white/10" />
+                <div className="w-20 h-14 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                  <FaImage className="text-gray-200" />
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-white font-heading font-semibold text-sm truncate">
+                  <h3 className="text-gray-800 font-heading font-semibold text-sm truncate">
                     {project.title}
                   </h3>
                   {project.is_featured && (
                     <FaStar className="text-saffron text-xs flex-shrink-0" />
                   )}
                 </div>
-                <p className="text-white/40 text-xs font-body truncate mt-0.5">
+                <p className="text-gray-400 text-xs font-body truncate mt-0.5">
                   {project.description}
                 </p>
                 {project.tech_stack?.length > 0 && (
@@ -433,7 +434,7 @@ const ProjectsManager = () => {
                     {project.tech_stack.slice(0, 4).map((t, i) => (
                       <span
                         key={i}
-                        className="px-1.5 py-0.5 bg-white/5 text-white/40 text-[9px] font-body rounded"
+                        className="px-1.5 py-0.5 bg-gray-50 text-gray-400 text-[9px] font-body rounded"
                       >
                         {t}
                       </span>
@@ -448,13 +449,13 @@ const ProjectsManager = () => {
                     setEditProject({ ...project });
                     setShowForm(true);
                   }}
-                  className="p-2 text-white/30 hover:text-saffron hover:bg-saffron/10 rounded-lg transition-colors"
+                  className="p-2 text-gray-300 hover:text-saffron hover:bg-saffron/10 rounded-lg transition-colors"
                 >
                   <FaEdit className="text-sm" />
                 </button>
                 <button
                   onClick={() => handleSoftDelete(project.id)}
-                  className="p-2 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  className="p-2 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                 >
                   <FaTrash className="text-sm" />
                 </button>

@@ -1,5 +1,14 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
   "rewrites": [
-    { "source": "/((?!static|api|favicon|logo|manifest|robots).*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!static|api|favicon|logo|manifest|robots).*)",
+      "destination": "/index.html"
+    }
   ]
 }

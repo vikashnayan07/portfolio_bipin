@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
 import {
-  FaEnvelope,
   FaTrash,
   FaReply,
   FaSpinner,
@@ -40,7 +39,7 @@ const MessagesManager = () => {
         (payload) => {
           setMessages((prev) => [payload.new, ...prev]);
           toast("New message from " + payload.new.name, { icon: "📩" });
-        }
+        },
       )
       .subscribe();
 
@@ -73,7 +72,7 @@ const MessagesManager = () => {
         .update({ status: "read" })
         .eq("id", msg.id);
       setMessages((prev) =>
-        prev.map((m) => (m.id === msg.id ? { ...m, status: "read" } : m))
+        prev.map((m) => (m.id === msg.id ? { ...m, status: "read" } : m)),
       );
     } catch (err) {
       /* silent */
@@ -85,38 +84,46 @@ const MessagesManager = () => {
 
     setReplying(true);
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .update({
-          reply: replyText,
-          status: "replied",
-          replied_at: new Date().toISOString(),
-        })
-        .eq("id", selectedMsg.id);
+      /* ── Call serverless API to save reply + send email ── */
+      const res = await fetch("/api/send-reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messageId: selectedMsg.id,
+          replyText: replyText.trim(),
+        }),
+      });
 
-      if (error) throw error;
+      const result = await res.json();
 
+      if (!res.ok && res.status !== 207) {
+        throw new Error(result.error || "Reply failed");
+      }
+
+      /* ── Update local state ── */
+      const now = new Date().toISOString();
       setMessages((prev) =>
         prev.map((m) =>
           m.id === selectedMsg.id
-            ? {
-                ...m,
-                reply: replyText,
-                status: "replied",
-                replied_at: new Date().toISOString(),
-              }
-            : m
-        )
+            ? { ...m, reply: replyText, status: "replied", replied_at: now }
+            : m,
+        ),
       );
       setSelectedMsg((prev) => ({
         ...prev,
         reply: replyText,
         status: "replied",
+        replied_at: now,
       }));
       setReplyText("");
-      toast.success("Reply saved!");
+
+      if (result.warning) {
+        toast.success("Reply saved, but email delivery failed. Check logs.");
+      } else {
+        toast.success("Reply sent to " + selectedMsg.email + " ✉️");
+      }
     } catch (err) {
-      toast.error("Reply failed");
+      toast.error("Reply failed: " + err.message);
     } finally {
       setReplying(false);
     }
@@ -164,8 +171,10 @@ const MessagesManager = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-heading font-bold text-white">Messages</h1>
-        <p className="text-white/40 text-sm font-body mt-1">
+        <h1 className="text-2xl font-heading font-bold text-gray-800">
+          Messages
+        </h1>
+        <p className="text-gray-400 text-sm font-body mt-1">
           {messages.filter((m) => m.status === "new").length} new message
           {messages.filter((m) => m.status === "new").length !== 1 ? "s" : ""}
         </p>
@@ -181,7 +190,7 @@ const MessagesManager = () => {
               className={`px-3 py-1.5 rounded-lg text-xs font-heading font-semibold transition-colors capitalize ${
                 filter === f
                   ? "bg-saffron/15 text-saffron"
-                  : "text-white/30 hover:text-white/50 hover:bg-white/5"
+                  : "text-gray-300 hover:text-gray-500 hover:bg-gray-50"
               }`}
             >
               {f}
@@ -189,12 +198,12 @@ const MessagesManager = () => {
           ))}
         </div>
         <div className="relative flex-1 max-w-xs">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-xs" />
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-xs font-body
-              placeholder-white/30 focus:border-saffron outline-none transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-800 text-xs font-body
+              placeholder-gray-400 focus:border-saffron outline-none transition-all"
             placeholder="Search messages..."
           />
         </div>
@@ -204,9 +213,9 @@ const MessagesManager = () => {
         {/* Messages List */}
         <div className="flex-1 space-y-2">
           {filteredMessages.length === 0 ? (
-            <div className="bg-white/5 border border-white/5 rounded-2xl p-12 text-center">
-              <FaInbox className="text-white/10 text-4xl mx-auto mb-3" />
-              <p className="text-white/30 text-sm font-body">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center">
+              <FaInbox className="text-gray-200 text-4xl mx-auto mb-3" />
+              <p className="text-gray-300 text-sm font-body">
                 {search || filter !== "all"
                   ? "No messages match your filter"
                   : "No messages yet"}
@@ -220,10 +229,10 @@ const MessagesManager = () => {
                   setSelectedMsg(msg);
                   markAsRead(msg);
                 }}
-                className={`bg-white/5 border rounded-xl p-4 cursor-pointer transition-all hover:border-white/15 ${
+                className={`bg-gray-50 border rounded-xl p-4 cursor-pointer transition-all hover:border-gray-200 ${
                   selectedMsg?.id === msg.id
                     ? "border-saffron/30 bg-saffron/5"
-                    : "border-white/5"
+                    : "border-gray-100"
                 } ${msg.status === "new" ? "border-l-2 border-l-saffron" : ""}`}
               >
                 <div className="flex items-start gap-3">
@@ -239,8 +248,8 @@ const MessagesManager = () => {
                       <p
                         className={`text-sm font-heading truncate ${
                           msg.status === "new"
-                            ? "text-white font-bold"
-                            : "text-white/70 font-semibold"
+                            ? "text-gray-800 font-bold"
+                            : "text-gray-600 font-semibold"
                         }`}
                       >
                         {msg.name}
@@ -253,10 +262,10 @@ const MessagesManager = () => {
                         {msg.status}
                       </span>
                     </div>
-                    <p className="text-white/50 text-xs font-body truncate">
+                    <p className="text-gray-500 text-xs font-body truncate">
                       {msg.subject || msg.message?.slice(0, 60)}
                     </p>
-                    <p className="text-white/25 text-[10px] font-body mt-1">
+                    <p className="text-gray-300 text-[10px] font-body mt-1">
                       {formatDistanceToNow(new Date(msg.created_at), {
                         addSuffix: true,
                       })}
@@ -267,7 +276,7 @@ const MessagesManager = () => {
                       e.stopPropagation();
                       handleSoftDelete(msg.id);
                     }}
-                    className="p-1.5 text-white/15 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                    className="p-1.5 text-gray-200 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                   >
                     <FaTrash className="text-xs" />
                   </button>
@@ -279,7 +288,7 @@ const MessagesManager = () => {
 
         {/* Message Detail */}
         {selectedMsg && (
-          <div className="hidden lg:block w-[400px] bg-white/5 border border-white/5 rounded-2xl p-5 sticky top-20 self-start space-y-5">
+          <div className="hidden lg:block w-[400px] bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sticky top-20 self-start space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div
@@ -290,17 +299,17 @@ const MessagesManager = () => {
                   {selectedMsg.name?.charAt(0)?.toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-white font-heading font-semibold text-sm">
+                  <p className="text-gray-800 font-heading font-semibold text-sm">
                     {selectedMsg.name}
                   </p>
-                  <p className="text-white/40 text-xs font-body">
+                  <p className="text-gray-400 text-xs font-body">
                     {selectedMsg.email}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedMsg(null)}
-                className="text-white/20 hover:text-white p-1"
+                className="text-gray-300 hover:text-gray-800 p-1"
               >
                 <FaTimes />
               </button>
@@ -308,27 +317,30 @@ const MessagesManager = () => {
 
             {selectedMsg.subject && (
               <div>
-                <p className="text-white/40 text-[10px] font-heading uppercase tracking-wider mb-1">
+                <p className="text-gray-400 text-[10px] font-heading uppercase tracking-wider mb-1">
                   Subject
                 </p>
-                <p className="text-white/80 text-sm font-body">
+                <p className="text-gray-700 text-sm font-body">
                   {selectedMsg.subject}
                 </p>
               </div>
             )}
 
             <div>
-              <p className="text-white/40 text-[10px] font-heading uppercase tracking-wider mb-1">
+              <p className="text-gray-400 text-[10px] font-heading uppercase tracking-wider mb-1">
                 Message
               </p>
-              <p className="text-white/70 text-sm font-body leading-relaxed whitespace-pre-wrap">
+              <p className="text-gray-600 text-sm font-body leading-relaxed whitespace-pre-wrap">
                 {selectedMsg.message}
               </p>
             </div>
 
-            <p className="text-white/25 text-[10px] font-body">
+            <p className="text-gray-300 text-[10px] font-body">
               Received{" "}
-              {format(new Date(selectedMsg.created_at), "MMM d, yyyy 'at' h:mm a")}
+              {format(
+                new Date(selectedMsg.created_at),
+                "MMM d, yyyy 'at' h:mm a",
+              )}
             </p>
 
             {/* Reply section */}
@@ -340,14 +352,14 @@ const MessagesManager = () => {
                     Replied
                   </p>
                 </div>
-                <p className="text-white/60 text-sm font-body">
+                <p className="text-gray-500 text-sm font-body">
                   {selectedMsg.reply}
                 </p>
                 {selectedMsg.replied_at && (
-                  <p className="text-white/20 text-[10px] font-body mt-2">
+                  <p className="text-gray-300 text-[10px] font-body mt-2">
                     {format(
                       new Date(selectedMsg.replied_at),
-                      "MMM d, yyyy 'at' h:mm a"
+                      "MMM d, yyyy 'at' h:mm a",
                     )}
                   </p>
                 )}
@@ -358,8 +370,8 @@ const MessagesManager = () => {
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-body
-                    placeholder-white/30 focus:border-saffron outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body
+                    placeholder-gray-400 focus:border-saffron outline-none transition-all resize-none"
                   placeholder="Write your reply..."
                 />
                 <button

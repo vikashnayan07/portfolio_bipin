@@ -14,6 +14,7 @@ import {
 } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
 import MagneticButton from "../ui/MagneticButton";
+import useProfile from "../../hooks/useProfile";
 
 /* ═══════════════════════════════════════════════════════════════
    HERO — Premium Magnetic Depth-Layer Experience
@@ -273,7 +274,13 @@ const NoiseTexture = () => (
    3D ARCHED MIRROR PHOTO CARD
    Tall arch shape · Photo pops out of frame
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const MagneticPhoto = ({ darkMode, scrollScale }) => {
+const MagneticPhoto = ({
+  darkMode,
+  scrollScale,
+  photoUrl,
+  fullName = "Bipin Kumar",
+  degree = "B.Ed",
+}) => {
   const containerRef = useRef(null);
   const rotateX = useMotionValue(0);
   const rotateY = useMotionValue(0);
@@ -403,8 +410,8 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
               }}
             >
               <img
-                src="/rehman.jpeg"
-                alt="Bipin Kumar"
+                src={photoUrl}
+                alt={fullName}
                 className="w-full h-full object-cover object-top"
                 draggable="false"
                 loading="eager"
@@ -565,8 +572,8 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
         >
           <div className="relative w-full h-full overflow-visible">
             <img
-              src="/rehman.jpeg"
-              alt="Bipin Kumar"
+              src={photoUrl}
+              alt={fullName}
               className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[95%] object-cover object-top"
               draggable="false"
               loading="eager"
@@ -676,7 +683,7 @@ const MagneticPhoto = ({ darkMode, scrollScale }) => {
               className={`text-[9px] font-body font-medium tracking-wider uppercase
                 ${darkMode ? "text-gray-300" : "text-gray-600"}`}
             >
-              B.Ed Student
+              {degree} Student
             </span>
           </motion.div>
         </motion.div>
@@ -719,7 +726,17 @@ const GlassNameCard = ({ darkMode, children }) => (
    MOBILE HERO — Aurora Bento Card Layout
    Matches HeroAuroraBento.jsx design exactly
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const MobileHeroBento = ({ typedText, greeting }) => {
+const MobileHeroBento = ({
+  typedText,
+  greeting,
+  photoUrl,
+  fullName = "Bipin Kumar",
+  firstName = "Bipin",
+  lastName = "Kumar",
+  location = "Bihar, India",
+  bio = "",
+  degree = "B.Ed",
+}) => {
   const bentoDelay = (d) => ({
     initial: { opacity: 0, y: 22 },
     animate: { opacity: 1, y: 0 },
@@ -779,8 +796,8 @@ const MobileHeroBento = ({ typedText, greeting }) => {
                 }}
               >
                 <img
-                  src="/rehman.jpeg"
-                  alt="Bipin Kumar"
+                  src={photoUrl}
+                  alt={fullName}
                   style={{
                     width: "100%",
                     height: "100%",
@@ -832,7 +849,7 @@ const MobileHeroBento = ({ typedText, greeting }) => {
                   letterSpacing: "-0.02em",
                 }}
               >
-                Bipin
+                {firstName}
               </span>
               <span
                 style={{
@@ -849,7 +866,7 @@ const MobileHeroBento = ({ typedText, greeting }) => {
                   backgroundClip: "text",
                 }}
               >
-                Kumar
+                {lastName}
               </span>
               <div
                 style={{
@@ -870,7 +887,7 @@ const MobileHeroBento = ({ typedText, greeting }) => {
                     padding: "3px 8px",
                   }}
                 >
-                  📍 Bihar, India
+                  📍 {location}
                 </span>
                 <span
                   style={{
@@ -1076,7 +1093,7 @@ const MobileHeroBento = ({ typedText, greeting }) => {
             color: "rgba(13,13,13,0.35)",
           }}
         >
-          — Bipin Kumar's Mission
+          — {fullName}'s Mission
         </p>
       </motion.div>
 
@@ -1348,6 +1365,8 @@ const Hero = () => {
 
   const typedText = useTypingEffect();
   const { greeting, isReturning } = useSmartGreeting();
+  const { photoUrl, fullName, firstName, lastName, bio, degree, location } =
+    useProfile();
 
   /* Mobile detection for layout changes */
   const [isMobileHero, setIsMobileHero] = useState(false);
@@ -1430,7 +1449,17 @@ const Hero = () => {
       >
         <StyleInjector />
         <div className="relative pt-20 pb-10">
-          <MobileHeroBento typedText={typedText} greeting={greeting} />
+          <MobileHeroBento
+            typedText={typedText}
+            greeting={greeting}
+            photoUrl={photoUrl}
+            fullName={fullName}
+            firstName={firstName}
+            lastName={lastName}
+            location={location}
+            bio={bio}
+            degree={degree}
+          />
         </div>
       </section>
     );
@@ -1628,9 +1657,9 @@ const Hero = () => {
                   >
                     <h1 className="font-heading font-black leading-[0.92] tracking-[-0.03em]">
                       <span className="block text-[2.8rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5.2rem] overflow-hidden">
-                        {"Bipin".split("").map((char, i) => (
+                        {firstName.split("").map((char, i) => (
                           <motion.span
-                            key={`bipin-${i}`}
+                            key={`first-${i}`}
                             initial={{ y: 80, opacity: 0, rotateX: 40 }}
                             animate={{ y: 0, opacity: 1, rotateX: 0 }}
                             transition={{
@@ -1650,9 +1679,9 @@ const Hero = () => {
                         ))}
                       </span>
                       <span className="block text-[2.8rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5.2rem] mt-[-0.08em] overflow-hidden">
-                        {"Kumar".split("").map((char, i) => (
+                        {lastName.split("").map((char, i) => (
                           <motion.span
-                            key={`kumar-${i}`}
+                            key={`last-${i}`}
                             initial={{
                               y: 80,
                               opacity: 0,
@@ -1798,17 +1827,7 @@ const Hero = () => {
                   className={`text-xs md:text-[13px] font-body leading-[1.7]
                     ${darkMode ? "text-gray-500" : "text-gray-500"}`}
                 >
-                  Dedicated B.Ed student committed to cracking BPSC and serving
-                  Bihar. Driven by{" "}
-                  <span className="text-saffron/80 font-medium">knowledge</span>
-                  ,{" "}
-                  <span
-                    className={`font-medium ${darkMode ? "text-gray-400" : "text-gray-600"}`}
-                  >
-                    perseverance
-                  </span>
-                  , and{" "}
-                  <span className="text-gold/80 font-medium">education</span>.
+                  {bio}
                 </p>
               </motion.div>
             )}
@@ -1873,7 +1892,13 @@ const Hero = () => {
             flex items-center justify-center
             ${isMobileHero ? "w-full pt-20 pb-2" : "w-full min-h-[50vh] pt-28 lg:pt-20 pb-4 sm:pb-0"}`}
         >
-          <MagneticPhoto darkMode={darkMode} scrollScale={photoScale} />
+          <MagneticPhoto
+            darkMode={darkMode}
+            scrollScale={photoScale}
+            photoUrl={photoUrl}
+            fullName={fullName}
+            degree={degree}
+          />
 
           {/* Vertical label */}
           <motion.div

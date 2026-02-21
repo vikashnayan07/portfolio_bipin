@@ -62,8 +62,13 @@ const Footer = () => {
           <motion.a
             href="#hero"
             whileHover={{ scale: 1.05 }}
-            className="text-2xl font-heading font-bold gradient-text mb-4 md:mb-0"
+            className="flex items-center gap-3 text-2xl font-heading font-bold gradient-text mb-4 md:mb-0"
           >
+            <img
+              src="/logo.png"
+              alt="BK Logo"
+              className="w-10 h-10 rounded-full object-cover"
+            />
             {"Bipin Kumar"}
           </motion.a>
 
