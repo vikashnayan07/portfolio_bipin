@@ -169,11 +169,11 @@ function buildHtmlEmail(
             <td style="padding:28px 40px;">
               <!-- Signature divider -->
               <div style="height:3px;background:#2d3a4a;margin-bottom:20px;"></div>
-              <!-- Signature content — auto-width so image sits beside text -->
-              <table role="presentation" cellpadding="0" cellspacing="0">
+              <!-- Signature content -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <!-- Left: Text content -->
-                  <td style="vertical-align:top;padding-right:20px;">
+                  <td style="vertical-align:middle;">
                     <p style="margin:0;font-size:18px;font-weight:700;color:#2d3a4a;font-family:'Segoe UI',Roboto,Arial,sans-serif;">Bipin Kumar</p>
                     <p style="margin:4px 0 0;font-size:13px;color:#2d3a4a;font-weight:600;">BPSC Aspirant &bull; Educator</p>
                     <div style="height:14px;"></div>
@@ -219,10 +219,12 @@ function buildHtmlEmail(
                       </tr>
                     </table>
                   </td>
-                  <!-- Right: Circular Profile Image (beside text, not far right) -->
-                  <td style="vertical-align:top;padding-top:4px;">
-                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="110" height="110" style="width:110px;height:110px;border-radius:50%;object-fit:cover;object-position:top;border:3px solid #e0e0e0;display:block;" />
+                  <!-- Profile Image — positioned after text with comfortable gap -->
+                  <td style="vertical-align:middle;width:120px;padding-left:24px;">
+                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="110" height="110" style="width:110px;height:110px;border-radius:50%;object-fit:cover;object-position:center 30%;border:3px solid #e0e0e0;display:block;" />
                   </td>
+                  <!-- Spacer so image isn't at extreme right edge -->
+                  <td style="width:60px;">&nbsp;</td>
                 </tr>
               </table>
             </td>
