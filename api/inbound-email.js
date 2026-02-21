@@ -175,8 +175,40 @@ module.exports = async function handler(req, res) {
     const data = body.data || body;
     const fromEmail = extractFromEmail(data.from);
     const subject = data.subject || "";
-    const textBody = data.text || "";
-    const htmlBody = data.html || data.body || "";
+    const emailId = data.email_id || "";
+
+    // The webhook payload does NOT include the email body.
+    // We must fetch it from the Resend API using the email_id.
+    let textBody = data.text || "";
+    let htmlBody = data.html || data.body || "";
+
+    if (!textBody && !htmlBody && emailId && process.env.RESEND_API_KEY) {
+      console.log("[inbound-email] Fetching email body from Resend API:", emailId);
+      try {
+        const fetchRes = await fetch(`https://api.resend.com/emails/${emailId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (fetchRes.ok) {
+          const emailData = await fetchRes.json();
+          textBody = emailData.text || "";
+          htmlBody = emailData.html || emailData.body || "";
+          console.log("[inbound-email] Fetched email body:", {
+            hasText: !!textBody,
+            textLen: textBody.length,
+            hasHtml: !!htmlBody,
+          });
+        } else {
+          console.error("[inbound-email] Resend API fetch failed:", fetchRes.status, await fetchRes.text());
+        }
+      } catch (fetchErr) {
+        console.error("[inbound-email] Resend API fetch error:", fetchErr.message);
+      }
+    }
+
     const plainText = textBody || stripHtml(htmlBody);
 
     console.log("[inbound-email] Parsed:", {
