@@ -20,7 +20,7 @@ const FROM_EMAIL = "Bipin Kumar <help@bipinoberoy.me>";
 const REPLY_TO_EMAIL = "help@bipinoberoy.me";
 const SITE_NAME = "bipinoberoy.me";
 const SITE_URL = "https://bipinoberoy.me";
-const PROFILE_IMG = "https://bipinoberoy.me/logo.png";
+const PROFILE_IMG = "https://bipinoberoy.me/IMG_20180505_065332.jpg";
 
 /* ── Premium Email Template ────────────────────────────── */
 function buildHtmlEmail(
@@ -164,38 +164,61 @@ function buildHtmlEmail(
           <!-- ▌ Divider -->
           <tr><td style="padding:0 40px;"><div style="height:1px;background:#eef0f4;"></div></td></tr>
 
-          <!-- ▌ Professional Signature -->
+          <!-- ▌ Professional Signature — Two Column Layout -->
           <tr>
             <td style="padding:28px 40px;">
-              <table role="presentation" cellpadding="0" cellspacing="0">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:3px solid #2d3a4a;padding-top:24px;">
                 <tr>
-                  <td style="vertical-align:top;padding-right:18px;">
-                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="56" height="56" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #FF9933;" />
-                  </td>
-                  <td style="vertical-align:top;">
-                    <p style="margin:0;font-size:16px;font-weight:700;color:#1a1a2e;">Bipin Kumar</p>
-                    <p style="margin:2px 0 0;font-size:13px;color:#FF9933;font-weight:600;">BPSC Aspirant &bull; Educator</p>
-                    <div style="height:10px;"></div>
-                    <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:12px;color:#8892a4;">
+                  <!-- Left: Text content -->
+                  <td style="vertical-align:top;width:65%;">
+                    <p style="margin:0;font-size:18px;font-weight:700;color:#2d3a4a;font-family:'Segoe UI',Roboto,Arial,sans-serif;">Bipin Kumar</p>
+                    <p style="margin:4px 0 0;font-size:13px;color:#2d3a4a;font-weight:600;">BPSC Aspirant &bull; Educator</p>
+                    <div style="height:14px;"></div>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:12px;">
                       <tr>
-                        <td style="padding:2px 0;">
-                          <span style="color:#a0aec0;">&#127760;</span>&nbsp;
-                          <a href="${SITE_URL}" style="color:#4a5568;text-decoration:none;font-weight:500;">${SITE_NAME}</a>
+                        <td style="padding:3px 0;">
+                          <span style="color:#c87941;">&#127760;</span>&nbsp;
+                          <a href="${SITE_URL}" style="color:#5a6577;text-decoration:none;font-weight:500;">${SITE_NAME}</a>
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding:2px 0;">
-                          <span style="color:#a0aec0;">&#9993;</span>&nbsp;
-                          <a href="mailto:help@bipinoberoy.me" style="color:#4a5568;text-decoration:none;font-weight:500;">help@bipinoberoy.me</a>
+                        <td style="padding:3px 0;">
+                          <span style="color:#c87941;">&#9993;</span>&nbsp;
+                          <a href="mailto:help@bipinoberoy.me" style="color:#5a6577;text-decoration:none;font-weight:500;">help@bipinoberoy.me</a>
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding:2px 0;">
-                          <span style="color:#a0aec0;">&#128205;</span>&nbsp;
-                          <span style="color:#4a5568;font-weight:500;">Bihar, India</span>
+                        <td style="padding:3px 0;">
+                          <span style="color:#c87941;">&#128205;</span>&nbsp;
+                          <span style="color:#5a6577;font-weight:500;">Bihar, India</span>
                         </td>
                       </tr>
                     </table>
+                    <div style="height:12px;"></div>
+                    <!-- Social Icons -->
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding-right:8px;">
+                          <a href="https://facebook.com" target="_blank" style="text-decoration:none;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="22" height="22" style="width:22px;height:22px;border-radius:50%;" />
+                          </a>
+                        </td>
+                        <td style="padding-right:8px;">
+                          <a href="https://instagram.com" target="_blank" style="text-decoration:none;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" width="22" height="22" style="width:22px;height:22px;border-radius:50%;" />
+                          </a>
+                        </td>
+                        <td style="padding-right:8px;">
+                          <a href="https://youtube.com" target="_blank" style="text-decoration:none;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/733/733646.png" alt="YouTube" width="22" height="22" style="width:22px;height:22px;border-radius:50%;" />
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <!-- Right: Circular Profile Image -->
+                  <td style="vertical-align:top;width:35%;text-align:right;">
+                    <img src="${PROFILE_IMG}" alt="Bipin Kumar" width="100" height="100" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #e8e8e8;display:inline-block;" />
                   </td>
                 </tr>
               </table>

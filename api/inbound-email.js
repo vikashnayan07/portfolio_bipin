@@ -114,10 +114,21 @@ function verifyWebhookSignature(payload, headers, secret) {
 
 /* ── Main Handler ──────────────────────────────────────── */
 module.exports = async function handler(req, res) {
+  /* ── Handle CORS preflight ── */
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, svix-id, svix-timestamp, svix-signature");
+    return res.status(200).end();
+  }
+
   /* ── Only allow POST ── */
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  /* ── Prevent any redirect — respond immediately with JSON headers ── */
+  res.setHeader("Content-Type", "application/json");
 
   /* ── Validate env vars ── */
   const { SUPABASE_URL, SUPABASE_SERVICE_KEY, RESEND_WEBHOOK_SECRET } =
