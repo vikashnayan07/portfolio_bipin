@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <!-- Gold gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#F0B429"/>
+      <stop offset="100%" style="stop-color:#C8870A"/>
+    </linearGradient>
+
+    <!-- Deep blue background -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D1B3E"/>
+      <stop offset="100%" style="stop-color:#050C20"/>
+    </linearGradient>
+
+    <!-- Glass shimmer -->
+    <linearGradient id="shimmer" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.12)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+
+    <!-- Glow -->
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Text shadow -->
+    <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <clipPath id="squareClip">
+      <rect x="5" y="5" width="90" height="90" rx="22" ry="22"/>
+    </clipPath>
+  </defs>
+
+  <!-- Outer soft glow ring -->
+  <rect x="2" y="2" width="96" height="96" rx="25" ry="25"
+        fill="none" stroke="#F0B429" stroke-width="0.6" opacity="0.3"/>
+
+  <!-- Main body -->
+  <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#bgGrad)"/>
+
+  <!-- Glass shimmer overlay -->
+  <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#shimmer)"/>
+
+  <!-- Subtle tech grid -->
+  <g clip-path="url(#squareClip)" opacity="0.05" stroke="#F0B429" stroke-width="0.5">
+    <line x1="5" y1="33" x2="95" y2="33"/>
+    <line x1="5" y1="66" x2="95" y2="66"/>
+    <line x1="33" y1="5" x2="33" y2="95"/>
+    <line x1="66" y1="5" x2="66" y2="95"/>
+  </g>
+
+  <!-- Bihar tri-color reference — bottom bar -->
+  <rect x="5" y="90" width="90" height="5" fill="#2B7A2B" opacity="0.45" clip-path="url(#squareClip)"/>
+  <rect x="5" y="90" width="30" height="5" fill="#F0B429" opacity="0.55" clip-path="url(#squareClip)"/>
+
+  <!-- Open book (education) — subtle above bar -->
+  <g opacity="0.5" transform="translate(50,78)">
+    <path d="M-14,0 Q-7,-4 0,-3 L0,7 Q-7,6 -14,10 Z" fill="url(#goldGrad)"/>
+    <path d="M14,0 Q7,-4 0,-3 L0,7 Q7,6 14,10 Z" fill="#F0B429" opacity="0.65"/>
+    <line x1="0" y1="-3" x2="0" y2="7" stroke="#FFD700" stroke-width="1.2"/>
+  </g>
+
+  <!-- Growth arrow (top right) -->
+  <g opacity="0.65" filter="url(#glow)">
+    <polyline points="74,30 81,20 88,30" fill="none" stroke="url(#goldGrad)" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="81" y1="20" x2="81" y2="38" stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Dot accent row (decorative) -->
+  <circle cx="50" cy="18" r="2.2" fill="url(#goldGrad)" opacity="0.8"/>
+  <circle cx="41" cy="18" r="1.3" fill="#F0B429" opacity="0.35"/>
+  <circle cx="59" cy="18" r="1.3" fill="#F0B429" opacity="0.35"/>
+
+  <!-- BK — bold hero text -->
+  <text x="13" y="68"
+        font-family="'Arial Black', 'Impact', 'Helvetica Neue', Arial, sans-serif"
+        font-weight="900"
+        font-size="46"
+        fill="url(#goldGrad)"
+        filter="url(#textGlow)"
+        letter-spacing="-2">BK</text>
+
+  <!-- Gold border -->
+  <rect x="5" y="5" width="90" height="90" rx="22" ry="22"
+        fill="none" stroke="url(#goldGrad)" stroke-width="1.8" opacity="0.85"/>
+</svg>

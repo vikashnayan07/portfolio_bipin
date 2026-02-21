@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
 import {
   FaTrash,
-  FaReply,
   FaSpinner,
   FaInbox,
   FaTimes,
   FaCheck,
   FaSearch,
+  FaPaperPlane,
+  FaUser,
+  FaUserShield,
 } from "react-icons/fa";
 import { format, formatDistanceToNow } from "date-fns";
 
@@ -16,6 +18,14 @@ const STATUS_COLORS = {
   new: "bg-saffron/15 text-saffron",
   read: "bg-blue-500/15 text-blue-400",
   replied: "bg-green-500/15 text-green-400",
+  user_replied: "bg-purple-500/15 text-purple-400",
+};
+
+const STATUS_LABELS = {
+  new: "New",
+  read: "Read",
+  replied: "Replied",
+  user_replied: "User Replied",
 };
 
 const MessagesManager = () => {
@@ -26,6 +36,9 @@ const MessagesManager = () => {
   const [replying, setReplying] = useState(false);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [conversation, setConversation] = useState([]);
+  const [loadingConvo, setLoadingConvo] = useState(false);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     fetchMessages();
@@ -41,12 +54,57 @@ const MessagesManager = () => {
           toast("New message from " + payload.new.name, { icon: "📩" });
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "contact_messages" },
+        (payload) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === payload.new.id
+                ? { ...payload.new, ...m, status: payload.new.status }
+                : m,
+            ),
+          );
+          // If the updated message is selected, refresh its data
+          if (
+            selectedMsg?.id === payload.new.id &&
+            payload.new.status === "user_replied"
+          ) {
+            toast("New reply from " + (payload.new.name || "user") + "!", {
+              icon: "💬",
+            });
+            fetchConversation(payload.new.id);
+          }
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "replies" },
+        (payload) => {
+          // If this reply belongs to the selected conversation
+          if (selectedMsg && payload.new.message_id === selectedMsg.id) {
+            setConversation((prev) => {
+              const exists = prev.some((r) => r.id === payload.new.id);
+              if (exists) return prev;
+              return [...prev, payload.new];
+            });
+          }
+        },
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMsg?.id]);
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [conversation]);
 
   const fetchMessages = async () => {
     try {
@@ -61,6 +119,24 @@ const MessagesManager = () => {
       toast.error("Failed to load messages");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchConversation = async (messageId) => {
+    setLoadingConvo(true);
+    try {
+      const { data, error } = await supabase
+        .from("replies")
+        .select("*")
+        .eq("message_id", messageId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      setConversation(data || []);
+    } catch (err) {
+      console.error("Failed to load conversation:", err);
+      setConversation([]);
+    } finally {
+      setLoadingConvo(false);
     }
   };
 
@@ -79,12 +155,18 @@ const MessagesManager = () => {
     }
   };
 
+  const handleSelectMessage = (msg) => {
+    setSelectedMsg(msg);
+    markAsRead(msg);
+    fetchConversation(msg.id);
+    setReplyText("");
+  };
+
   const handleReply = async () => {
     if (!replyText.trim() || !selectedMsg) return;
 
     setReplying(true);
     try {
-      /* ── Call serverless API to save reply + send email ── */
       const res = await fetch("/api/send-reply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,18 +182,27 @@ const MessagesManager = () => {
         throw new Error(result.error || "Reply failed");
       }
 
-      /* ── Update local state ── */
+      /* ── Add reply to local conversation ── */
+      const newReply = {
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+        message_id: selectedMsg.id,
+        sender_type: "admin",
+        reply_text: replyText.trim(),
+        created_at: new Date().toISOString(),
+      };
+      setConversation((prev) => [...prev, newReply]);
+
+      /* ── Update message status ── */
       const now = new Date().toISOString();
       setMessages((prev) =>
         prev.map((m) =>
           m.id === selectedMsg.id
-            ? { ...m, reply: replyText, status: "replied", replied_at: now }
+            ? { ...m, status: "replied", replied_at: now }
             : m,
         ),
       );
       setSelectedMsg((prev) => ({
         ...prev,
-        reply: replyText,
         status: "replied",
         replied_at: now,
       }));
@@ -126,6 +217,12 @@ const MessagesManager = () => {
       toast.error("Reply failed: " + err.message);
     } finally {
       setReplying(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      handleReply();
     }
   };
 
@@ -175,15 +272,24 @@ const MessagesManager = () => {
           Messages
         </h1>
         <p className="text-gray-400 text-sm font-body mt-1">
-          {messages.filter((m) => m.status === "new").length} new message
-          {messages.filter((m) => m.status === "new").length !== 1 ? "s" : ""}
+          {
+            messages.filter(
+              (m) => m.status === "new" || m.status === "user_replied",
+            ).length
+          }{" "}
+          need
+          {messages.filter(
+            (m) => m.status === "new" || m.status === "user_replied",
+          ).length !== 1
+            ? " attention"
+            : "s attention"}
         </p>
       </div>
 
       {/* Filters & Search */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
-        <div className="flex gap-1.5">
-          {["all", "new", "read", "replied"].map((f) => (
+        <div className="flex gap-1.5 flex-wrap">
+          {["all", "new", "user_replied", "read", "replied"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -193,7 +299,7 @@ const MessagesManager = () => {
                   : "text-gray-300 hover:text-gray-500 hover:bg-gray-50"
               }`}
             >
-              {f}
+              {f === "user_replied" ? "User Replied" : f}
             </button>
           ))}
         </div>
@@ -211,7 +317,7 @@ const MessagesManager = () => {
 
       <div className="flex gap-5">
         {/* Messages List */}
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-2 min-w-0">
           {filteredMessages.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 text-center">
               <FaInbox className="text-gray-200 text-4xl mx-auto mb-3" />
@@ -225,15 +331,16 @@ const MessagesManager = () => {
             filteredMessages.map((msg) => (
               <div
                 key={msg.id}
-                onClick={() => {
-                  setSelectedMsg(msg);
-                  markAsRead(msg);
-                }}
+                onClick={() => handleSelectMessage(msg)}
                 className={`bg-gray-50 border rounded-xl p-4 cursor-pointer transition-all hover:border-gray-200 ${
                   selectedMsg?.id === msg.id
                     ? "border-saffron/30 bg-saffron/5"
                     : "border-gray-100"
-                } ${msg.status === "new" ? "border-l-2 border-l-saffron" : ""}`}
+                } ${msg.status === "new" ? "border-l-2 border-l-saffron" : ""} ${
+                  msg.status === "user_replied"
+                    ? "border-l-2 border-l-purple-400"
+                    : ""
+                }`}
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -247,7 +354,7 @@ const MessagesManager = () => {
                     <div className="flex items-center gap-2">
                       <p
                         className={`text-sm font-heading truncate ${
-                          msg.status === "new"
+                          msg.status === "new" || msg.status === "user_replied"
                             ? "text-gray-800 font-bold"
                             : "text-gray-600 font-semibold"
                         }`}
@@ -255,21 +362,28 @@ const MessagesManager = () => {
                         {msg.name}
                       </p>
                       <span
-                        className={`px-1.5 py-0.5 text-[8px] font-heading font-bold rounded-full uppercase ${
+                        className={`px-1.5 py-0.5 text-[8px] font-heading font-bold rounded-full uppercase whitespace-nowrap ${
                           STATUS_COLORS[msg.status]
                         }`}
                       >
-                        {msg.status}
+                        {STATUS_LABELS[msg.status] || msg.status}
                       </span>
                     </div>
                     <p className="text-gray-500 text-xs font-body truncate">
                       {msg.subject || msg.message?.slice(0, 60)}
                     </p>
-                    <p className="text-gray-300 text-[10px] font-body mt-1">
-                      {formatDistanceToNow(new Date(msg.created_at), {
-                        addSuffix: true,
-                      })}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-gray-300 text-[10px] font-body">
+                        {formatDistanceToNow(new Date(msg.created_at), {
+                          addSuffix: true,
+                        })}
+                      </p>
+                      {msg.ticket_id && (
+                        <span className="text-gray-300 text-[9px] font-mono bg-gray-100 px-1.5 py-0.5 rounded">
+                          {msg.ticket_id}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <button
                     onClick={(e) => {
@@ -286,110 +400,185 @@ const MessagesManager = () => {
           )}
         </div>
 
-        {/* Message Detail */}
+        {/* Conversation Panel */}
         {selectedMsg && (
-          <div className="hidden lg:block w-[400px] bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sticky top-20 self-start space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                    STATUS_COLORS[selectedMsg.status]
-                  }`}
-                >
-                  {selectedMsg.name?.charAt(0)?.toUpperCase()}
+          <div
+            className="hidden lg:flex lg:flex-col w-[440px] bg-white border border-gray-200 rounded-2xl shadow-sm sticky top-20 self-start overflow-hidden"
+            style={{ maxHeight: "calc(100vh - 120px)" }}
+          >
+            {/* ── Header ── */}
+            <div className="p-5 border-b border-gray-100 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                      STATUS_COLORS[selectedMsg.status]
+                    }`}
+                  >
+                    {selectedMsg.name?.charAt(0)?.toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-gray-800 font-heading font-semibold text-sm">
+                      {selectedMsg.name}
+                    </p>
+                    <p className="text-gray-400 text-xs font-body">
+                      {selectedMsg.email}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-800 font-heading font-semibold text-sm">
-                    {selectedMsg.name}
-                  </p>
-                  <p className="text-gray-400 text-xs font-body">
-                    {selectedMsg.email}
-                  </p>
+                <div className="flex items-center gap-2">
+                  {selectedMsg.ticket_id && (
+                    <span className="text-[10px] font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
+                      {selectedMsg.ticket_id}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedMsg(null);
+                      setConversation([]);
+                    }}
+                    className="text-gray-300 hover:text-gray-800 p-1"
+                  >
+                    <FaTimes />
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedMsg(null)}
-                className="text-gray-300 hover:text-gray-800 p-1"
-              >
-                <FaTimes />
-              </button>
             </div>
 
-            {selectedMsg.subject && (
-              <div>
-                <p className="text-gray-400 text-[10px] font-heading uppercase tracking-wider mb-1">
-                  Subject
-                </p>
-                <p className="text-gray-700 text-sm font-body">
-                  {selectedMsg.subject}
-                </p>
+            {/* ── Chat Thread ── */}
+            <div
+              className="flex-1 overflow-y-auto p-5 space-y-4"
+              style={{ minHeight: "200px", maxHeight: "400px" }}
+            >
+              {/* Original message (always first) */}
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <FaUser className="text-blue-400 text-[10px]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-heading font-semibold text-gray-700">
+                      {selectedMsg.name}
+                    </span>
+                    <span className="text-[10px] text-gray-300 font-body">
+                      {format(
+                        new Date(selectedMsg.created_at),
+                        "MMM d, h:mm a",
+                      )}
+                    </span>
+                  </div>
+                  {selectedMsg.subject && (
+                    <p className="text-[11px] font-heading font-semibold text-gray-500 mb-1">
+                      Re: {selectedMsg.subject}
+                    </p>
+                  )}
+                  <div className="bg-gray-50 rounded-xl rounded-tl-sm p-3.5">
+                    <p className="text-gray-600 text-sm font-body leading-relaxed whitespace-pre-wrap">
+                      {selectedMsg.message}
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
 
-            <div>
-              <p className="text-gray-400 text-[10px] font-heading uppercase tracking-wider mb-1">
-                Message
-              </p>
-              <p className="text-gray-600 text-sm font-body leading-relaxed whitespace-pre-wrap">
-                {selectedMsg.message}
-              </p>
-            </div>
-
-            <p className="text-gray-300 text-[10px] font-body">
-              Received{" "}
-              {format(
-                new Date(selectedMsg.created_at),
-                "MMM d, yyyy 'at' h:mm a",
+              {/* Loading indicator */}
+              {loadingConvo && (
+                <div className="flex justify-center py-3">
+                  <div className="w-5 h-5 border-2 border-saffron border-t-transparent rounded-full animate-spin" />
+                </div>
               )}
-            </p>
 
-            {/* Reply section */}
-            {selectedMsg.reply ? (
-              <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <FaCheck className="text-green-400 text-xs" />
-                  <p className="text-green-400 text-xs font-heading font-semibold">
-                    Replied
-                  </p>
-                </div>
-                <p className="text-gray-500 text-sm font-body">
-                  {selectedMsg.reply}
-                </p>
-                {selectedMsg.replied_at && (
-                  <p className="text-gray-300 text-[10px] font-body mt-2">
-                    {format(
-                      new Date(selectedMsg.replied_at),
-                      "MMM d, yyyy 'at' h:mm a",
+              {/* Conversation replies */}
+              {conversation.map((reply) => (
+                <div
+                  key={reply.id}
+                  className={`flex gap-3 ${reply.sender_type === "admin" ? "flex-row-reverse" : ""}`}
+                >
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                      reply.sender_type === "admin"
+                        ? "bg-saffron/15"
+                        : "bg-blue-100"
+                    }`}
+                  >
+                    {reply.sender_type === "admin" ? (
+                      <FaUserShield className="text-saffron text-[10px]" />
+                    ) : (
+                      <FaUser className="text-blue-400 text-[10px]" />
                     )}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
+                  </div>
+                  <div
+                    className={`flex-1 min-w-0 ${reply.sender_type === "admin" ? "text-right" : ""}`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 mb-1 ${reply.sender_type === "admin" ? "justify-end" : ""}`}
+                    >
+                      <span className="text-xs font-heading font-semibold text-gray-700">
+                        {reply.sender_type === "admin"
+                          ? "You"
+                          : selectedMsg.name}
+                      </span>
+                      <span className="text-[10px] text-gray-300 font-body">
+                        {format(new Date(reply.created_at), "MMM d, h:mm a")}
+                      </span>
+                    </div>
+                    <div
+                      className={`inline-block max-w-full rounded-xl p-3.5 ${
+                        reply.sender_type === "admin"
+                          ? "bg-gradient-to-br from-saffron/10 to-gold/10 rounded-tr-sm text-left"
+                          : "bg-gray-50 rounded-tl-sm"
+                      }`}
+                    >
+                      <p className="text-gray-600 text-sm font-body leading-relaxed whitespace-pre-wrap">
+                        {reply.reply_text}
+                      </p>
+                    </div>
+                    {reply.sender_type === "admin" && (
+                      <div
+                        className={`flex items-center gap-1 mt-1 ${reply.sender_type === "admin" ? "justify-end" : ""}`}
+                      >
+                        <FaCheck className="text-green-400 text-[8px]" />
+                        <span className="text-[9px] text-green-400 font-body">
+                          Sent via email
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* ── Reply Composer (always visible) ── */}
+            <div className="p-4 border-t border-gray-100 flex-shrink-0 bg-gray-50/50">
+              <div className="flex gap-2">
                 <textarea
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 text-sm font-body
+                  onKeyDown={handleKeyDown}
+                  rows={2}
+                  className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm font-body
                     placeholder-gray-400 focus:border-saffron outline-none transition-all resize-none"
-                  placeholder="Write your reply..."
+                  placeholder="Type your reply... (Ctrl+Enter to send)"
                 />
                 <button
                   onClick={handleReply}
                   disabled={replying || !replyText.trim()}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-saffron to-gold text-white text-sm
+                  className="self-end px-4 py-2.5 bg-gradient-to-r from-saffron to-gold text-white text-sm
                     font-heading font-bold rounded-xl hover:shadow-lg hover:shadow-saffron/25 transition-all
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {replying ? (
                     <FaSpinner className="animate-spin" />
                   ) : (
-                    <FaReply />
+                    <FaPaperPlane className="text-xs" />
                   )}
-                  {replying ? "Sending..." : "Reply"}
                 </button>
               </div>
-            )}
+              <p className="text-[10px] text-gray-300 font-body mt-1.5 text-center">
+                Replies are sent to {selectedMsg.email} via email
+              </p>
+            </div>
           </div>
         )}
       </div>

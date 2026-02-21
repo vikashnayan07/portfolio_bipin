@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BK Favicon — Modern Trendy</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #060612;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 50px;
+    padding: 40px;
+    background-image: radial-gradient(ellipse at 20% 50%, #1a0533 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 20%, #001133 0%, transparent 60%);
+  }
+
+  h1 {
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #F0B429, #fff8e7, #F0B429);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+    flex-wrap: wrap;
+  }
+
+  .size-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .label {
+    color: #4a5568;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .on-light {
+    background: #f0f0f0;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .on-dark {
+    background: #111;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .tab-row {
+    display: flex;
+    gap: 0;
+  }
+  .tab {
+    background: #1e1e2e;
+    border-radius: 10px 10px 0 0;
+    padding: 8px 18px 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #a0a8b8;
+    font-size: 0.78rem;
+    border-top: 1px solid #2d2d45;
+    border-left: 1px solid #2d2d45;
+    border-right: 1px solid #2d2d45;
+  }
+
+  .note {
+    color: #2d3a52;
+    font-size: 0.7rem;
+    text-align: center;
+    line-height: 2;
+    letter-spacing: 0.04em;
+  }
+  .note span { color: #4a6080; }
+</style>
+</head>
+<body>
+
+<h1>BK — Portfolio Favicon</h1>
+
+<div class="row">
+
+  <!-- LARGE showcase -->
+  <div class="size-card">
+    <div class="label">Showcase · 160px</div>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="160" height="160">
+      <defs>
+        <!-- Main gradient: Gold to amber -->
+        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#FFD700"/>
+          <stop offset="50%" style="stop-color:#F0B429"/>
+          <stop offset="100%" style="stop-color:#C8870A"/>
+        </linearGradient>
+
+        <!-- Deep blue background gradient -->
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#0D1B3E"/>
+          <stop offset="100%" style="stop-color:#050C20"/>
+        </linearGradient>
+
+        <!-- Shimmer/highlight gradient -->
+        <linearGradient id="shimmer" x1="0%" y1="0%" x2="60%" y2="100%">
+          <stop offset="0%" style="stop-color:rgba(255,255,255,0.18)"/>
+          <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+        </linearGradient>
+
+        <!-- Glow filter -->
+        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+
+        <!-- Soft shadow -->
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#F0B429" flood-opacity="0.3"/>
+        </filter>
+
+        <!-- Clip for rounded square -->
+        <clipPath id="squareClip">
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22"/>
+        </clipPath>
+      </defs>
+
+      <!-- Outer glow ring -->
+      <rect x="3" y="3" width="94" height="94" rx="24" ry="24"
+            fill="none" stroke="url(#goldGrad)" stroke-width="0.8" opacity="0.4"/>
+
+      <!-- Main background -->
+      <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#bgGrad)"/>
+
+      <!-- Shimmer glass overlay top-left -->
+      <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#shimmer)"/>
+
+      <!-- Subtle grid lines (tech feel) -->
+      <g clip-path="url(#squareClip)" opacity="0.06" stroke="#F0B429" stroke-width="0.5">
+        <line x1="5" y1="25" x2="95" y2="25"/>
+        <line x1="5" y1="50" x2="95" y2="50"/>
+        <line x1="5" y1="75" x2="95" y2="75"/>
+        <line x1="25" y1="5" x2="25" y2="95"/>
+        <line x1="50" y1="5" x2="50" y2="95"/>
+        <line x1="75" y1="5" x2="75" y2="95"/>
+      </g>
+
+      <!-- Bottom accent line (Bihar flag colors echo — green/gold) -->
+      <rect x="5" y="90" width="90" height="5" rx="0" ry="0" fill="#2B7A2B" opacity="0.5" clip-path="url(#squareClip)"/>
+      <rect x="5" y="90" width="30" height="5" rx="0" ry="0" fill="#F0B429" opacity="0.6" clip-path="url(#squareClip)"/>
+
+      <!-- Open book icon — bottom center, subtle -->
+      <g opacity="0.55" transform="translate(50,76)">
+        <!-- Left page -->
+        <path d="M-12,0 Q-6,-3 0,-2 L0,7 Q-6,6 -12,9 Z" fill="url(#goldGrad)"/>
+        <!-- Right page -->
+        <path d="M12,0 Q6,-3 0,-2 L0,7 Q6,6 12,9 Z" fill="#F0B429" opacity="0.7"/>
+        <!-- Spine -->
+        <line x1="0" y1="-2" x2="0" y2="7" stroke="#FFD700" stroke-width="1" opacity="0.9"/>
+      </g>
+
+      <!-- Growth arrow — top right corner, subtle -->
+      <g opacity="0.6" filter="url(#glow)">
+        <polyline points="74,28 80,20 86,28" fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="80" y1="20" x2="80" y2="36" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+      </g>
+
+      <!-- BK lettering — main hero element -->
+      <g filter="url(#shadow)">
+        <!-- B -->
+        <text x="18" y="66"
+              font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+              font-weight="900"
+              font-size="42"
+              fill="url(#goldGrad)"
+              letter-spacing="-1">B</text>
+        <!-- K -->
+        <text x="53" y="66"
+              font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+              font-weight="900"
+              font-size="42"
+              fill="url(#goldGrad)"
+              letter-spacing="-1">K</text>
+      </g>
+
+      <!-- Decorative dot accent -->
+      <circle cx="50" cy="20" r="2.5" fill="url(#goldGrad)" opacity="0.7"/>
+      <circle cx="42" cy="20" r="1.5" fill="#F0B429" opacity="0.3"/>
+      <circle cx="58" cy="20" r="1.5" fill="#F0B429" opacity="0.3"/>
+
+      <!-- Border stroke -->
+      <rect x="5" y="5" width="90" height="90" rx="22" ry="22"
+            fill="none" stroke="url(#goldGrad)" stroke-width="1.5" opacity="0.8"/>
+    </svg>
+  </div>
+
+  <!-- Sizes row -->
+  <div style="display:flex; flex-direction:column; gap:30px; align-items:center;">
+    <div class="row">
+      <div class="size-card">
+        <div class="label">64px</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="64" height="64">
+          <defs>
+            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#C8870A"/>
+            </linearGradient>
+            <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#0D1B3E"/><stop offset="100%" style="stop-color:#050C20"/>
+            </linearGradient>
+            <filter id="glow1"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <clipPath id="c1"><rect x="5" y="5" width="90" height="90" rx="22" ry="22"/></clipPath>
+          </defs>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#bg1)"/>
+          <rect x="5" y="90" width="90" height="5" rx="0" fill="#2B7A2B" opacity="0.5" clip-path="url(#c1)"/>
+          <rect x="5" y="90" width="30" height="5" rx="0" fill="#F0B429" opacity="0.6" clip-path="url(#c1)"/>
+          <text x="15" y="68" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="44" fill="url(#g1)" filter="url(#glow1)">BK</text>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="none" stroke="url(#g1)" stroke-width="1.5" opacity="0.8"/>
+        </svg>
+      </div>
+
+      <div class="size-card">
+        <div class="label">32px</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32">
+          <defs>
+            <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#C8870A"/>
+            </linearGradient>
+            <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#0D1B3E"/><stop offset="100%" style="stop-color:#050C20"/>
+            </linearGradient>
+            <clipPath id="c2"><rect x="5" y="5" width="90" height="90" rx="22" ry="22"/></clipPath>
+          </defs>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#bg2)"/>
+          <rect x="5" y="90" width="90" height="5" fill="#2B7A2B" opacity="0.5" clip-path="url(#c2)"/>
+          <rect x="5" y="90" width="30" height="5" fill="#F0B429" opacity="0.6" clip-path="url(#c2)"/>
+          <text x="15" y="68" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="44" fill="url(#g2)">BK</text>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="none" stroke="url(#g2)" stroke-width="1.5" opacity="0.8"/>
+        </svg>
+      </div>
+
+      <div class="size-card">
+        <div class="label">16px</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16">
+          <defs>
+            <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#C8870A"/>
+            </linearGradient>
+            <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#0D1B3E"/><stop offset="100%" style="stop-color:#050C20"/>
+            </linearGradient>
+          </defs>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#bg3)"/>
+          <text x="15" y="68" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="44" fill="url(#g3)">BK</text>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="none" stroke="#F0B429" stroke-width="1.5" opacity="0.8"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Light background test -->
+    <div class="size-card">
+      <div class="label">On Light Background</div>
+      <div class="on-light">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="64" height="64">
+          <defs>
+            <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#C8870A"/>
+            </linearGradient>
+            <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#0D1B3E"/><stop offset="100%" style="stop-color:#050C20"/>
+            </linearGradient>
+            <clipPath id="c4"><rect x="5" y="5" width="90" height="90" rx="22" ry="22"/></clipPath>
+          </defs>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#bg4)"/>
+          <rect x="5" y="90" width="90" height="5" fill="#2B7A2B" opacity="0.5" clip-path="url(#c4)"/>
+          <rect x="5" y="90" width="30" height="5" fill="#F0B429" opacity="0.6" clip-path="url(#c4)"/>
+          <text x="15" y="68" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="44" fill="url(#g4)">BK</text>
+          <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="none" stroke="url(#g4)" stroke-width="1.5" opacity="0.8"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Browser tab sim -->
+<div>
+  <div class="tab">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16">
+      <defs>
+        <linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#C8870A"/>
+        </linearGradient>
+        <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#0D1B3E"/><stop offset="100%" style="stop-color:#050C20"/>
+        </linearGradient>
+      </defs>
+      <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="url(#bg5)"/>
+      <text x="15" y="68" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="44" fill="url(#g5)">BK</text>
+      <rect x="5" y="5" width="90" height="90" rx="22" ry="22" fill="none" stroke="#F0B429" stroke-width="1.5" opacity="0.8"/>
+    </svg>
+    BK Portfolio — Home
+  </div>
+</div>
+
+<div class="note">
+  <span>Design Language:</span> Rounded square · Gold gradient initials · Deep navy background<br>
+  <span>Hidden symbols:</span> Book at base · Growth arrow · Bihar tri-color bottom bar · Tech grid overlay
+</div>
+
+</body>
+</html>

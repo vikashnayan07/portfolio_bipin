@@ -1,13 +1,33 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "build",
+  "headers": [
+    {
+      "source": "/favicon.(ico|png)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/favicon-(.*).png",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, must-revalidate"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
     {
-      "source": "/((?!static|api|favicon|logo|manifest|robots).*)",
+      "source": "/((?!static|api|favicon|logo|manifest|robots|asset-manifest).*)",
       "destination": "/index.html"
     }
   ]
