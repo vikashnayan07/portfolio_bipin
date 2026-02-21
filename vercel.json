@@ -3,20 +3,15 @@
   "outputDirectory": "build",
   "headers": [
     {
-      "source": "/favicon.(ico|png)",
+      "source": "/files/favicon-bk-v2.svg",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=86400, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/favicon-(.*).png",
-      "headers": [
+          "value": "public, max-age=0, must-revalidate"
+        },
         {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, must-revalidate"
+          "key": "Content-Type",
+          "value": "image/svg+xml"
         }
       ]
     }
@@ -27,7 +22,7 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/((?!static|api|favicon|logo|manifest|robots|asset-manifest).*)",
+      "source": "/((?!static|api|favicon|files|logo|manifest|robots|asset-manifest).*)",
       "destination": "/index.html"
     }
   ]
