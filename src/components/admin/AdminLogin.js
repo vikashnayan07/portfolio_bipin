@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { FaLock, FaEnvelope, FaEye, FaEyeSlash, FaShieldAlt } from "react-icons/fa";
+import {
+  FaLock,
+  FaEnvelope,
+  FaEye,
+  FaEyeSlash,
+  FaShieldAlt,
+} from "react-icons/fa";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -40,21 +46,30 @@ const AdminLogin = () => {
       {/* Animated mesh pattern */}
       <div className="fixed inset-0 opacity-30">
         <div className="absolute top-0 -left-4 w-72 h-72 bg-amber-500 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse" />
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse" style={{ animationDelay: '4s' }} />
+        <div
+          className="absolute top-0 -right-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse"
+          style={{ animationDelay: "2s" }}
+        />
+        <div
+          className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-[128px] animate-pulse"
+          style={{ animationDelay: "4s" }}
+        />
       </div>
 
       {/* Grid pattern overlay */}
       <div
         className="fixed inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
         }}
       />
 
       {/* Main content */}
-      <div className={`relative z-10 w-full max-w-md mx-4 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <div
+        className={`relative z-10 w-full max-w-md mx-4 transition-all duration-1000 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+      >
         {/* Logo & Header */}
         <div className="text-center mb-10">
           <div className="relative inline-block mb-5">
@@ -153,8 +168,20 @@ const AdminLogin = () => {
               ) : (
                 <>
                   <span>Sign In to Dashboard</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="ml-1">
-                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    className="ml-1"
+                  >
+                    <path
+                      d="M3 8h10M9 4l4 4-4 4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </>
               )}
@@ -165,11 +192,14 @@ const AdminLogin = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-gray-500 text-xs">
-            Secured Admin Panel &bull; <span className="text-gray-400">Bipin Kumar</span>
+            Secured Admin Panel &bull;{" "}
+            <span className="text-gray-400">Bipin Kumar</span>
           </p>
           <div className="flex items-center justify-center gap-1 mt-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span className="text-emerald-400/70 text-[10px] uppercase tracking-wider font-medium">System Online</span>
+            <span className="text-emerald-400/70 text-[10px] uppercase tracking-wider font-medium">
+              System Online
+            </span>
           </div>
         </div>
       </div>

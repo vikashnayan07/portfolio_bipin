@@ -22,17 +22,30 @@ import { format, subDays, isToday, isYesterday } from "date-fns";
 /* ═══════════════════════════════════════════════
    STAT CARD — glassmorphism style
 ═══════════════════════════════════════════════ */
-const StatCard = ({ icon: Icon, label, value, color, bgGrad, to, subtitle, trend }) => (
+const StatCard = ({
+  icon: Icon,
+  label,
+  value,
+  color,
+  bgGrad,
+  to,
+  subtitle,
+  trend,
+}) => (
   <Link
     to={to}
     className="group relative overflow-hidden bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
   >
     {/* Accent gradient blob */}
-    <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-10 ${bgGrad} blur-2xl group-hover:opacity-20 transition-opacity`} />
+    <div
+      className={`absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-10 ${bgGrad} blur-2xl group-hover:opacity-20 transition-opacity`}
+    />
 
     <div className="relative">
       <div className="flex items-center justify-between mb-4">
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color} shadow-sm`}>
+        <div
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color} shadow-sm`}
+        >
           <Icon className="text-lg" />
         </div>
         {trend && (
@@ -42,7 +55,9 @@ const StatCard = ({ icon: Icon, label, value, color, bgGrad, to, subtitle, trend
           </div>
         )}
       </div>
-      <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">{value}</p>
+      <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+        {value}
+      </p>
       <p className="text-gray-500 text-xs font-medium mt-1">{label}</p>
       {subtitle && (
         <p className="text-gray-400 text-[11px] mt-0.5">{subtitle}</p>
@@ -95,11 +110,21 @@ const SparklineChart = ({ data, height = 100 }) => {
 /* ═══════════════════════════════════════════════
    DEVICE PROGRESS BAR
 ═══════════════════════════════════════════════ */
-const DeviceBar = ({ icon: Icon, label, count, total, color, gradFrom, gradTo }) => {
+const DeviceBar = ({
+  icon: Icon,
+  label,
+  count,
+  total,
+  color,
+  gradFrom,
+  gradTo,
+}) => {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
     <div className="flex items-center gap-4 p-3.5 rounded-xl hover:bg-gray-50 transition-colors">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} shadow-sm`}>
+      <div
+        className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} shadow-sm`}
+      >
         <Icon className="text-base" />
       </div>
       <div className="flex-1 min-w-0">
@@ -395,7 +420,8 @@ const Dashboard = () => {
     );
   }
 
-  const totalDevices = stats.mobileCount + stats.desktopCount + stats.tabletCount;
+  const totalDevices =
+    stats.mobileCount + stats.desktopCount + stats.tabletCount;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
@@ -453,11 +479,15 @@ const Dashboard = () => {
         <StatCard
           icon={FaEnvelope}
           label="Messages"
-          value={stats.newMessages > 0 ? `${stats.newMessages} new` : stats.messages}
+          value={
+            stats.newMessages > 0 ? `${stats.newMessages} new` : stats.messages
+          }
           color="bg-amber-100 text-amber-600"
           bgGrad="bg-amber-500"
           to="/admin/messages"
-          subtitle={stats.newMessages > 0 ? `${stats.messages} total` : undefined}
+          subtitle={
+            stats.newMessages > 0 ? `${stats.messages} total` : undefined
+          }
         />
       </div>
 
@@ -495,7 +525,10 @@ const Dashboard = () => {
               { label: "This Month", value: stats.monthVisits, icon: "📊" },
               { label: "All Time", value: stats.uniqueVisitors, icon: "👥" },
             ].map((item) => (
-              <div key={item.label} className="text-center p-3 rounded-xl bg-gray-50">
+              <div
+                key={item.label}
+                className="text-center p-3 rounded-xl bg-gray-50"
+              >
                 <p className="text-lg sm:text-xl font-extrabold text-gray-900">
                   {item.value.toLocaleString()}
                 </p>
@@ -512,7 +545,9 @@ const Dashboard = () => {
               <FaGlobeAsia className="text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">Devices</h2>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                Devices
+              </h2>
               <p className="text-gray-400 text-xs">{totalDevices} total</p>
             </div>
           </div>

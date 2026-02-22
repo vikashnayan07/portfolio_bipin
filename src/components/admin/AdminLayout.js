@@ -75,12 +75,12 @@ const AdminLayout = () => {
   };
 
   // Get current page title
-  const currentPage = navItems.find(
-    (item) =>
+  const currentPage =
+    navItems.find((item) =>
       item.end
         ? location.pathname === item.to
         : location.pathname.startsWith(item.to) && item.to !== "/admin",
-  ) || navItems[0];
+    ) || navItems[0];
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -142,9 +142,13 @@ const AdminLayout = () => {
             >
               {({ isActive }) => (
                 <>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                    isActive ? "bg-amber-500 text-white shadow-md shadow-amber-200" : "bg-gray-100 text-gray-400 group-hover:bg-gray-200"
-                  }`}>
+                  <div
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                      isActive
+                        ? "bg-amber-500 text-white shadow-md shadow-amber-200"
+                        : "bg-gray-100 text-gray-400 group-hover:bg-gray-200"
+                    }`}
+                  >
                     <item.icon className="text-sm" />
                   </div>
                   <span className="flex-1">{item.label}</span>
@@ -172,7 +176,9 @@ const AdminLayout = () => {
               <p className="text-gray-800 text-xs font-semibold truncate">
                 {user?.email}
               </p>
-              <p className="text-gray-400 text-[10px] font-medium">Administrator</p>
+              <p className="text-gray-400 text-[10px] font-medium">
+                Administrator
+              </p>
             </div>
           </div>
           <button
@@ -202,9 +208,13 @@ const AdminLayout = () => {
             <div className="hidden sm:flex items-center gap-2 text-sm">
               <span className="text-gray-400">Admin</span>
               <FaChevronRight className="text-gray-300 text-[8px]" />
-              <span className="text-gray-700 font-semibold">{currentPage.label}</span>
+              <span className="text-gray-700 font-semibold">
+                {currentPage.label}
+              </span>
             </div>
-            <span className="sm:hidden text-gray-800 font-semibold text-sm">{currentPage.label}</span>
+            <span className="sm:hidden text-gray-800 font-semibold text-sm">
+              {currentPage.label}
+            </span>
           </div>
 
           {/* Right side */}

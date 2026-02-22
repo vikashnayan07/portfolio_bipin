@@ -8,7 +8,6 @@
  */
 
 const { createClient } = require("@supabase/supabase-js");
-const { Resend } = require("resend");
 const crypto = require("crypto");
 
 /* ── Extract ticket ID from subject: [TKT-XXXXXXXX] ── */
@@ -76,6 +75,26 @@ function extractFromEmail(from) {
   // Object: { address: "..." }
   if (from.address) return from.address.toLowerCase();
   if (from.email) return from.email.toLowerCase();
+  return "";
+}
+
+/* ── Deep-search for a field value in nested objects ── */
+function deepFindField(obj, fieldNames, maxDepth, depth) {
+  if (depth === undefined) depth = 0;
+  if (maxDepth === undefined) maxDepth = 4;
+  if (depth > maxDepth || !obj || typeof obj !== "object") return "";
+  for (var i = 0; i < fieldNames.length; i++) {
+    var val = obj[fieldNames[i]];
+    if (val && typeof val === "string" && val.trim().length > 0) return val;
+  }
+  var keys = Object.keys(obj);
+  for (var k = 0; k < keys.length; k++) {
+    var child = obj[keys[k]];
+    if (child && typeof child === "object" && !Array.isArray(child)) {
+      var found = deepFindField(child, fieldNames, maxDepth, depth + 1);
+      if (found) return found;
+    }
+  }
   return "";
 }
 
@@ -151,7 +170,14 @@ module.exports = async function handler(req, res) {
   });
 
   try {
-    const body = req.body || {};
+    let body = req.body || {};
+    // Handle raw/string/buffer body
+    if (typeof body === "string") {
+      try { body = JSON.parse(body); } catch (e) { /* keep as-is */ }
+    }
+    if (Buffer.isBuffer(body)) {
+      try { body = JSON.parse(body.toString("utf-8")); } catch (e) { body = {}; }
+    }
 
     // Verify signature if secret is configured
     if (RESEND_WEBHOOK_SECRET) {
@@ -181,65 +207,85 @@ module.exports = async function handler(req, res) {
     const subject = data.subject || "";
     const emailId = data.email_id || "";
 
-    // Log FULL payload for debugging
-    console.log("[inbound-email] FULL PAYLOAD:", JSON.stringify(body, null, 2));
+    // ── Comprehensive payload logging ──
+    var payloadStr = JSON.stringify(body);
+    console.log("[inbound-email] FULL PAYLOAD (" + payloadStr.length + " chars):", payloadStr.substring(0, 5000));
+    console.log("[inbound-email] TOP KEYS:", Object.keys(body));
     console.log("[inbound-email] DATA KEYS:", Object.keys(data));
+    // Field presence check (exists vs missing vs empty)
+    console.log("[inbound-email] data.text exists:", "text" in data, "| type:", typeof data.text, "| len:", (data.text || "").length);
+    console.log("[inbound-email] data.html exists:", "html" in data, "| type:", typeof data.html, "| len:", (data.html || "").length);
 
-    // Try to get body from webhook payload first (all possible field names)
+    // ── Step 1: Direct field access (standard Resend inbound fields) ──
     let textBody = data.text || data.plain_text || data.plain_body || data.body_text || "";
     let htmlBody = data.html || data.html_body || data.body_html || data.body || data.content || "";
+    if (textBody || htmlBody) console.log("[inbound-email] Body found in data direct fields");
 
-    // If no body in webhook, fetch from Resend API using SDK
-    if (!textBody && !htmlBody && emailId && process.env.RESEND_API_KEY) {
-      console.log("[inbound-email] No body in webhook payload, fetching via Resend SDK:", emailId);
-      try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        const { data: emailData, error: emailError } = await resend.emails.get(emailId);
-        if (emailError) {
-          console.error("[inbound-email] Resend SDK get error:", emailError);
-        } else if (emailData) {
-          console.log("[inbound-email] Resend SDK response keys:", Object.keys(emailData));
-          textBody = emailData.text || "";
-          htmlBody = emailData.html || emailData.body || "";
-          console.log("[inbound-email] Fetched body via SDK:", {
-            hasText: !!textBody,
-            textLen: textBody ? textBody.length : 0,
-            hasHtml: !!htmlBody,
-            htmlLen: htmlBody ? htmlBody.length : 0,
-          });
-        }
-      } catch (sdkErr) {
-        console.error("[inbound-email] Resend SDK error:", sdkErr.message);
-      }
-
-      // Fallback: try raw fetch if SDK failed
-      if (!textBody && !htmlBody) {
-        try {
-          const fetchRes = await fetch(`https://api.resend.com/emails/${emailId}`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
-          });
-          const fetchBody = await fetchRes.text();
-          console.log("[inbound-email] Raw API response:", fetchRes.status, fetchBody.substring(0, 500));
-          if (fetchRes.ok) {
-            const parsed = JSON.parse(fetchBody);
-            textBody = parsed.text || "";
-            htmlBody = parsed.html || parsed.body || "";
-          }
-        } catch (fetchErr) {
-          console.error("[inbound-email] Raw fetch error:", fetchErr.message);
-        }
+    // ── Step 2: Check nested objects (data.email, data.payload, data.message) ──
+    if (!textBody && !htmlBody) {
+      var nested = data.email || data.payload || data.message || data.record || null;
+      if (nested && typeof nested === "object") {
+        textBody = nested.text || nested.plain_text || nested.body_text || "";
+        htmlBody = nested.html || nested.html_body || nested.body || nested.content || "";
+        if (textBody || htmlBody) console.log("[inbound-email] Body found in nested object");
       }
     }
 
-    const plainText = textBody || stripHtml(htmlBody);
+    // ── Step 3: Deep recursive search through entire payload ──
+    if (!textBody && !htmlBody) {
+      textBody = deepFindField(body, ["text", "plain_text", "body_text", "plain_body"]);
+      htmlBody = deepFindField(body, ["html", "html_body", "body_html"]);
+      if (textBody || htmlBody) console.log("[inbound-email] Body found via deep search");
+    }
 
-    console.log("[inbound-email] Parsed:", {
+    // ── Step 4: Check attachments for body content ──
+    if (!textBody && !htmlBody) {
+      var attachments = data.attachments || data.files || [];
+      if (Array.isArray(attachments) && attachments.length > 0) {
+        console.log("[inbound-email] Checking " + attachments.length + " attachments");
+        for (var ai = 0; ai < attachments.length; ai++) {
+          var att = attachments[ai];
+          var ct = (att.content_type || att.contentType || att.type || "").toLowerCase();
+          var ac = att.content || att.data || att.body || "";
+          if (!ac) continue;
+          // Decode base64 if needed
+          var isBase64 = typeof ac === "string" && /^[A-Za-z0-9+/\n\r]+=*$/.test(ac.replace(/\s/g, ""));
+          if (ct.includes("text/plain") && !textBody) {
+            textBody = isBase64 ? Buffer.from(ac, "base64").toString("utf-8") : ac;
+          }
+          if (ct.includes("text/html") && !htmlBody) {
+            htmlBody = isBase64 ? Buffer.from(ac, "base64").toString("utf-8") : ac;
+          }
+        }
+        if (textBody || htmlBody) console.log("[inbound-email] Body found in attachments");
+      }
+    }
+
+    // ── Step 5: Log headers for debugging ──
+    if (!textBody && !htmlBody && data.headers && Array.isArray(data.headers)) {
+      console.log("[inbound-email] Headers present:", data.headers.map(function(h) { return h.name || h.key; }));
+    }
+
+    // Note: resend.emails.get() only works for OUTBOUND emails.
+    // For inbound emails, body MUST come from the webhook payload.
+    // If body is missing, the webhook URL may need fixing (use www subdomain).
+
+    if (!textBody && !htmlBody) {
+      console.error("[inbound-email] ⚠ NO BODY FOUND in any location! Possible causes:");
+      console.error("  1. Webhook URL uses non-www domain (307 redirect strips body)");
+      console.error("  2. Resend inbound domain DNS (MX records) not configured");
+      console.error("  3. Unexpected payload format - check FULL PAYLOAD log above");
+    }
+
+    var plainText = textBody || stripHtml(htmlBody);
+
+    console.log("[inbound-email] EXTRACTION RESULT:", {
       from: fromEmail,
-      subject,
+      subject: subject,
       hasText: !!textBody,
       hasHtml: !!htmlBody,
       textLen: plainText.length,
+      bodyPreview: plainText.substring(0, 200),
     });
 
     if (!fromEmail) {
