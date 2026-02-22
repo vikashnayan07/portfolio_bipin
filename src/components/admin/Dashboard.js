@@ -14,44 +14,59 @@ import {
   FaFire,
   FaUsers,
   FaGlobeAsia,
+  FaArrowUp,
+  FaEye,
 } from "react-icons/fa";
 import { format, subDays, isToday, isYesterday } from "date-fns";
 
 /* ═══════════════════════════════════════════════
-   STAT CARD — top-level metric
+   STAT CARD — glassmorphism style
 ═══════════════════════════════════════════════ */
-const StatCard = ({ icon: Icon, label, value, color, to, subtitle }) => (
+const StatCard = ({ icon: Icon, label, value, color, bgGrad, to, subtitle, trend }) => (
   <Link
     to={to}
-    className="group bg-white border border-gray-200 shadow-sm rounded-2xl p-5 hover:border-gray-300 hover:shadow-md transition-all duration-300"
+    className="group relative overflow-hidden bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
   >
-    <div className="flex items-center justify-between mb-3">
-      <div
-        className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}
-      >
-        <Icon className="text-lg" />
+    {/* Accent gradient blob */}
+    <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-10 ${bgGrad} blur-2xl group-hover:opacity-20 transition-opacity`} />
+
+    <div className="relative">
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color} shadow-sm`}>
+          <Icon className="text-lg" />
+        </div>
+        {trend && (
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold">
+            <FaArrowUp className="text-[8px]" />
+            {trend}
+          </div>
+        )}
       </div>
-      <FaArrowRight className="text-gray-300 group-hover:text-gray-400 text-xs transition-colors" />
+      <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">{value}</p>
+      <p className="text-gray-500 text-xs font-medium mt-1">{label}</p>
+      {subtitle && (
+        <p className="text-gray-400 text-[11px] mt-0.5">{subtitle}</p>
+      )}
     </div>
-    <p className="text-2xl font-heading font-bold text-gray-800">{value}</p>
-    <p className="text-gray-400 text-xs font-body mt-1">{label}</p>
-    {subtitle && (
-      <p className="text-gray-300 text-[10px] font-body mt-0.5">{subtitle}</p>
-    )}
+
+    {/* Hover arrow */}
+    <div className="absolute bottom-5 right-5 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0 -translate-x-2">
+      <FaArrowRight className="text-gray-400 text-xs" />
+    </div>
   </Link>
 );
 
 /* ═══════════════════════════════════════════════
-   MINI SPARKLINE — simple bar chart
+   SPARKLINE BAR CHART
 ═══════════════════════════════════════════════ */
-const SparklineChart = ({ data, height = 80 }) => {
+const SparklineChart = ({ data, height = 100 }) => {
   if (!data || data.length === 0) return null;
   const max = Math.max(...data.map((d) => d.count), 1);
 
   return (
-    <div className="flex items-end gap-[3px]" style={{ height }}>
+    <div className="flex items-end gap-1 sm:gap-1.5" style={{ height }}>
       {data.map((d, i) => {
-        const barH = Math.max(4, (d.count / max) * height);
+        const barH = Math.max(6, (d.count / max) * height);
         const isLast = i === data.length - 1;
         return (
           <div
@@ -59,16 +74,16 @@ const SparklineChart = ({ data, height = 80 }) => {
             className="flex-1 flex flex-col items-center gap-1 group relative"
           >
             <div
-              className={`w-full rounded-t-sm transition-all duration-300 ${
+              className={`w-full rounded-lg transition-all duration-500 cursor-pointer ${
                 isLast
-                  ? "bg-gradient-to-t from-saffron to-gold"
-                  : "bg-saffron/20 group-hover:bg-saffron/40"
+                  ? "bg-gradient-to-t from-amber-500 to-orange-400 shadow-md shadow-amber-200"
+                  : "bg-gradient-to-t from-amber-100 to-amber-50 group-hover:from-amber-200 group-hover:to-amber-100"
               }`}
               style={{ height: barH }}
             />
-            {/* Tooltip */}
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-gray-800 text-white text-[9px] font-body opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-              {d.label}: {d.count}
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1.5 rounded-lg bg-gray-900 text-white text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-xl">
+              {d.label}: <span className="font-bold">{d.count}</span>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900" />
             </div>
           </div>
         );
@@ -78,32 +93,30 @@ const SparklineChart = ({ data, height = 80 }) => {
 };
 
 /* ═══════════════════════════════════════════════
-   DEVICE PILL
+   DEVICE PROGRESS BAR
 ═══════════════════════════════════════════════ */
-const DevicePill = ({ icon: Icon, label, count, total, color }) => {
+const DeviceBar = ({ icon: Icon, label, count, total, color, gradFrom, gradTo }) => {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-      <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}
-      >
-        <Icon className="text-sm" />
+    <div className="flex items-center gap-4 p-3.5 rounded-xl hover:bg-gray-50 transition-colors">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} shadow-sm`}>
+        <Icon className="text-base" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-heading font-semibold text-gray-700 capitalize">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-gray-700 capitalize">
             {label}
           </span>
-          <span className="text-[10px] font-body text-gray-400">{pct}%</span>
+          <span className="text-xs font-bold text-gray-900">{pct}%</span>
         </div>
-        <div className="w-full h-1.5 rounded-full bg-gray-200 overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-saffron to-gold transition-all duration-700"
+            className={`h-full rounded-full bg-gradient-to-r ${gradFrom} ${gradTo} transition-all duration-1000`}
             style={{ width: `${pct}%` }}
           />
         </div>
       </div>
-      <span className="text-sm font-heading font-bold text-gray-600">
+      <span className="text-sm font-bold text-gray-600 min-w-[36px] text-right">
         {count}
       </span>
     </div>
@@ -114,29 +127,32 @@ const DevicePill = ({ icon: Icon, label, count, total, color }) => {
    TOP BLOG ROW
 ═══════════════════════════════════════════════ */
 const TopBlogRow = ({ rank, title, slug, views, uniqueViews }) => (
-  <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group">
+  <div className="flex items-center gap-3.5 p-3.5 rounded-xl hover:bg-gray-50 transition-colors group">
     <div
-      className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-heading font-bold flex-shrink-0 ${
+      className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-extrabold flex-shrink-0 shadow-sm ${
         rank === 1
-          ? "bg-gradient-to-br from-saffron to-gold text-navy"
+          ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white"
           : rank === 2
-            ? "bg-gray-200 text-gray-600"
-            : "bg-gray-100 text-gray-400"
+            ? "bg-gradient-to-br from-gray-300 to-gray-400 text-white"
+            : rank === 3
+              ? "bg-gradient-to-br from-amber-600 to-amber-700 text-white"
+              : "bg-gray-100 text-gray-500"
       }`}
     >
-      {rank}
+      #{rank}
     </div>
     <div className="flex-1 min-w-0">
-      <p className="text-sm font-heading font-semibold text-gray-700 truncate group-hover:text-saffron transition-colors">
+      <p className="text-sm font-semibold text-gray-800 truncate group-hover:text-amber-600 transition-colors">
         {title || slug}
       </p>
-      <p className="text-[10px] font-body text-gray-400">/{slug}</p>
+      <p className="text-[11px] text-gray-400">/{slug}</p>
     </div>
     <div className="text-right flex-shrink-0">
-      <p className="text-sm font-heading font-bold text-gray-700">{views}</p>
-      <p className="text-[10px] font-body text-gray-400">
-        {uniqueViews} unique
-      </p>
+      <div className="flex items-center gap-1">
+        <FaEye className="text-gray-400 text-[10px]" />
+        <p className="text-sm font-bold text-gray-800">{views}</p>
+      </div>
+      <p className="text-[10px] text-gray-400">{uniqueViews} unique</p>
     </div>
   </div>
 );
@@ -168,7 +184,6 @@ const Dashboard = () => {
 
   const fetchDashboard = useCallback(async () => {
     try {
-      // 1. Fetch basic counts
       const [projectsRes, blogsRes, messagesRes, newMsgRes, recentRes] =
         await Promise.all([
           supabase
@@ -196,7 +211,6 @@ const Dashboard = () => {
             .limit(5),
         ]);
 
-      // 2. Try RPC analytics, fallback to direct queries
       let analyticsData = null;
       try {
         const { data: rpcData, error: rpcError } = await supabase.rpc(
@@ -206,7 +220,7 @@ const Dashboard = () => {
           analyticsData = rpcData;
         }
       } catch {
-        // RPC not available yet — use fallback
+        // RPC not available
       }
 
       let totalVisits = 0,
@@ -230,7 +244,6 @@ const Dashboard = () => {
         desktopCount = analyticsData.desktop_count || 0;
         tabletCount = analyticsData.tablet_count || 0;
       } else {
-        // Fallback: direct queries
         const today = new Date().toISOString().split("T")[0];
         const weekAgo = subDays(new Date(), 7).toISOString();
         const monthAgo = subDays(new Date(), 30).toISOString();
@@ -267,7 +280,7 @@ const Dashboard = () => {
           ]);
 
         totalVisits = totalRes.count || 0;
-        uniqueVisitors = totalVisits; // approximate without RPC
+        uniqueVisitors = totalVisits;
         todayVisits = todayRes.count || 0;
         todayUnique = todayVisits;
         weekVisits = weekRes.count || 0;
@@ -294,7 +307,7 @@ const Dashboard = () => {
       });
       setRecentMessages(recentRes.data || []);
 
-      // 3. Fetch daily visit data for chart (last 14 days)
+      // Daily visits chart
       try {
         const { data: rpcDaily, error: dailyErr } = await supabase.rpc(
           "get_daily_visits",
@@ -310,10 +323,10 @@ const Dashboard = () => {
           );
         }
       } catch {
-        // Chart just won't show data — no problem
+        // no chart data
       }
 
-      // 4. Fetch top blogs
+      // Top blogs
       try {
         const { data: rpcBlogs, error: blogErr } = await supabase.rpc(
           "get_top_blogs",
@@ -321,7 +334,6 @@ const Dashboard = () => {
         );
         if (!blogErr && rpcBlogs) {
           setTopBlogs(rpcBlogs);
-          // Fetch blog titles for the slugs
           const slugs = rpcBlogs.map((b) => b.slug);
           if (slugs.length > 0) {
             const { data: blogData } = await supabase
@@ -338,7 +350,7 @@ const Dashboard = () => {
           }
         }
       } catch {
-        // Top blogs just won't show
+        // no top blogs
       }
     } catch (err) {
       console.error("Dashboard fetch error:", err);
@@ -351,7 +363,6 @@ const Dashboard = () => {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  // Realtime: update stats when new visitors come in
   useEffect(() => {
     const channel = supabase
       .channel("dashboard-visitors")
@@ -376,42 +387,50 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-saffron border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-400 text-sm">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
-  const totalDevices =
-    stats.mobileCount + stats.desktopCount + stats.tabletCount;
+  const totalDevices = stats.mobileCount + stats.desktopCount + stats.tabletCount;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+      {/* ═══ HEADER ═══ */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
             Dashboard
           </h1>
-          <p className="text-gray-400 text-sm font-body mt-1">
-            Portfolio overview & analytics
+          <p className="text-gray-500 text-sm mt-1">
+            Welcome back! Here's what's happening with your portfolio.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-[11px] font-body text-gray-400">
-          <div className="relative flex items-center justify-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
+        <div className="flex items-center gap-3 self-start">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
+            <div className="relative">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 block" />
+              <span className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500 animate-ping opacity-60" />
+            </div>
+            <span className="text-emerald-700 text-xs font-semibold">Live</span>
           </div>
-          Live
+          <span className="text-gray-400 text-xs hidden sm:block">
+            {format(new Date(), "MMM d, yyyy")}
+          </span>
         </div>
       </div>
 
       {/* ═══ TOP STATS GRID ═══ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         <StatCard
           icon={FaUsers}
           label="Unique Visitors"
           value={stats.uniqueVisitors.toLocaleString()}
-          color="bg-emerald-500/15 text-emerald-500"
+          color="bg-emerald-100 text-emerald-600"
+          bgGrad="bg-emerald-500"
           to="/admin"
           subtitle={`${stats.totalVisits.toLocaleString()} total visits`}
         />
@@ -419,138 +438,141 @@ const Dashboard = () => {
           icon={FaProjectDiagram}
           label="Total Projects"
           value={stats.projects}
-          color="bg-blue-500/15 text-blue-400"
+          color="bg-blue-100 text-blue-600"
+          bgGrad="bg-blue-500"
           to="/admin/projects"
         />
         <StatCard
           icon={FaPenNib}
           label="Blog Posts"
           value={stats.blogs}
-          color="bg-purple-500/15 text-purple-400"
+          color="bg-violet-100 text-violet-600"
+          bgGrad="bg-violet-500"
           to="/admin/blog"
         />
         <StatCard
           icon={FaEnvelope}
           label="Messages"
-          value={`${stats.newMessages} new`}
-          color="bg-saffron/15 text-saffron"
+          value={stats.newMessages > 0 ? `${stats.newMessages} new` : stats.messages}
+          color="bg-amber-100 text-amber-600"
+          bgGrad="bg-amber-500"
           to="/admin/messages"
-          subtitle={`${stats.messages} total`}
+          subtitle={stats.newMessages > 0 ? `${stats.messages} total` : undefined}
         />
       </div>
 
       {/* ═══ ANALYTICS ROW ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Visit Chart */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FaChartLine className="text-saffron text-sm" />
-              <h2 className="text-base font-heading font-bold text-gray-800">
-                Visitor Traffic
-              </h2>
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <FaChartLine className="text-amber-600" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                  Visitor Traffic
+                </h2>
+                <p className="text-gray-400 text-xs">Last 14 days</p>
+              </div>
             </div>
-            <span className="text-[10px] font-body text-gray-400 uppercase tracking-wider">
-              Last 14 days
-            </span>
           </div>
 
           {dailyData.length > 0 ? (
-            <SparklineChart data={dailyData} height={100} />
+            <SparklineChart data={dailyData} height={120} />
           ) : (
-            <div className="flex items-center justify-center h-[100px] text-gray-300 text-sm font-body">
-              <p>Chart data will appear after running the SQL migration</p>
+            <div className="flex items-center justify-center h-[120px] text-gray-300 text-sm">
+              <p>Chart data will appear after SQL migration</p>
             </div>
           )}
 
-          {/* Quick stats row */}
-          <div className="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100">
-            <div className="text-center">
-              <p className="text-lg font-heading font-bold text-gray-800">
-                {stats.todayVisits}
-              </p>
-              <p className="text-[10px] font-body text-gray-400">Today</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-heading font-bold text-gray-800">
-                {stats.weekVisits}
-              </p>
-              <p className="text-[10px] font-body text-gray-400">This Week</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-heading font-bold text-gray-800">
-                {stats.monthVisits}
-              </p>
-              <p className="text-[10px] font-body text-gray-400">This Month</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-heading font-bold text-saffron">
-                {stats.uniqueVisitors}
-              </p>
-              <p className="text-[10px] font-body text-gray-400">
-                Unique Total
-              </p>
-            </div>
+          {/* Quick stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-gray-100">
+            {[
+              { label: "Today", value: stats.todayVisits, icon: "🔥" },
+              { label: "This Week", value: stats.weekVisits, icon: "📈" },
+              { label: "This Month", value: stats.monthVisits, icon: "📊" },
+              { label: "All Time", value: stats.uniqueVisitors, icon: "👥" },
+            ].map((item) => (
+              <div key={item.label} className="text-center p-3 rounded-xl bg-gray-50">
+                <p className="text-lg sm:text-xl font-extrabold text-gray-900">
+                  {item.value.toLocaleString()}
+                </p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{item.label}</p>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Device Breakdown */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <FaGlobeAsia className="text-saffron text-sm" />
-            <h2 className="text-base font-heading font-bold text-gray-800">
-              Devices
-            </h2>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
+              <FaGlobeAsia className="text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">Devices</h2>
+              <p className="text-gray-400 text-xs">{totalDevices} total</p>
+            </div>
           </div>
 
           {totalDevices > 0 ? (
-            <div className="space-y-3">
-              <DevicePill
+            <div className="space-y-2">
+              <DeviceBar
                 icon={FaDesktop}
                 label="Desktop"
                 count={stats.desktopCount}
                 total={totalDevices}
-                color="bg-blue-500/15 text-blue-400"
+                color="bg-blue-100 text-blue-600"
+                gradFrom="from-blue-400"
+                gradTo="to-blue-500"
               />
-              <DevicePill
+              <DeviceBar
                 icon={FaMobileAlt}
                 label="Mobile"
                 count={stats.mobileCount}
                 total={totalDevices}
-                color="bg-purple-500/15 text-purple-400"
+                color="bg-violet-100 text-violet-600"
+                gradFrom="from-violet-400"
+                gradTo="to-violet-500"
               />
-              <DevicePill
+              <DeviceBar
                 icon={FaTabletAlt}
                 label="Tablet"
                 count={stats.tabletCount}
                 total={totalDevices}
-                color="bg-emerald-500/15 text-emerald-400"
+                color="bg-emerald-100 text-emerald-600"
+                gradFrom="from-emerald-400"
+                gradTo="to-emerald-500"
               />
             </div>
           ) : (
-            <p className="text-gray-300 text-sm font-body py-8 text-center">
+            <p className="text-gray-300 text-sm py-8 text-center">
               Device data will appear after SQL migration
             </p>
           )}
         </div>
       </div>
 
-      {/* ═══ BOTTOM ROW — Top Blogs + Recent Messages ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* ═══ BOTTOM ROW ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Top Blog Posts */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FaFire className="text-saffron text-sm" />
-              <h2 className="text-base font-heading font-bold text-gray-800">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                <FaFire className="text-orange-600" />
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
                 Most Viewed Posts
               </h2>
             </div>
             <Link
               to="/admin/blog"
-              className="text-saffron text-xs font-body hover:underline flex items-center gap-1"
+              className="text-amber-600 text-xs font-semibold hover:text-amber-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-amber-50 transition-colors"
             >
-              All posts <FaArrowRight className="text-[10px]" />
+              All Posts <FaArrowRight className="text-[10px]" />
             </Link>
           </div>
 
@@ -568,31 +590,33 @@ const Dashboard = () => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-300 text-sm font-body py-8 text-center">
+            <p className="text-gray-300 text-sm py-8 text-center">
               Blog view data will appear once visitors read your posts
             </p>
           )}
         </div>
 
         {/* Recent Messages */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FaEnvelope className="text-saffron text-sm" />
-              <h2 className="text-base font-heading font-bold text-gray-800">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                <FaEnvelope className="text-blue-600" />
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
                 Recent Messages
               </h2>
             </div>
             <Link
               to="/admin/messages"
-              className="text-saffron text-xs font-body hover:underline flex items-center gap-1"
+              className="text-amber-600 text-xs font-semibold hover:text-amber-700 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-amber-50 transition-colors"
             >
-              View all <FaArrowRight className="text-[10px]" />
+              View All <FaArrowRight className="text-[10px]" />
             </Link>
           </div>
 
           {recentMessages.length === 0 ? (
-            <p className="text-gray-300 text-sm font-body py-8 text-center">
+            <p className="text-gray-300 text-sm py-8 text-center">
               No messages yet
             </p>
           ) : (
@@ -605,39 +629,47 @@ const Dashboard = () => {
                     ? "Yesterday"
                     : format(date, "MMM d");
                 return (
-                  <div
+                  <Link
                     key={msg.id}
-                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                    to="/admin/messages"
+                    className="flex items-start gap-3.5 p-3.5 rounded-xl hover:bg-gray-50 transition-colors group"
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm ${
                         msg.status === "new"
-                          ? "bg-saffron/20 text-saffron"
+                          ? "bg-gradient-to-br from-amber-400 to-orange-400 text-white"
                           : msg.status === "replied"
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-gray-100 text-gray-400"
+                            ? "bg-emerald-100 text-emerald-600"
+                            : msg.status === "user_replied"
+                              ? "bg-violet-100 text-violet-600"
+                              : "bg-gray-100 text-gray-500"
                       }`}
                     >
                       {msg.name?.charAt(0)?.toUpperCase() || "?"}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-gray-800 text-sm font-heading font-semibold truncate">
+                        <p className="text-gray-900 text-sm font-semibold truncate group-hover:text-amber-600 transition-colors">
                           {msg.name}
                         </p>
                         {msg.status === "new" && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-saffron flex-shrink-0" />
+                          <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
+                        )}
+                        {msg.status === "user_replied" && (
+                          <span className="px-1.5 py-0.5 text-[8px] font-bold bg-violet-100 text-violet-600 rounded-full uppercase">
+                            Reply
+                          </span>
                         )}
                       </div>
-                      <p className="text-gray-500 text-xs font-body truncate">
-                        {msg.subject || msg.message}
+                      <p className="text-gray-500 text-xs truncate mt-0.5">
+                        {msg.subject || msg.message?.slice(0, 60)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 text-gray-300 text-[10px] font-body flex-shrink-0">
-                      <FaClock className="text-[8px]" />
+                    <div className="flex items-center gap-1.5 text-gray-400 text-[11px] flex-shrink-0">
+                      <FaClock className="text-[9px]" />
                       {dateLabel}
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

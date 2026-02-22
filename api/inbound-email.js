@@ -8,6 +8,7 @@
  */
 
 const { createClient } = require("@supabase/supabase-js");
+const { Resend } = require("resend");
 const crypto = require("crypto");
 
 /* ── Extract ticket ID from subject: [TKT-XXXXXXXX] ── */
@@ -154,9 +155,12 @@ module.exports = async function handler(req, res) {
 
     // Verify signature if secret is configured
     if (RESEND_WEBHOOK_SECRET) {
-      const rawBody =
-        typeof body === "string" ? body : JSON.stringify(body);
-      const valid = verifySignature(rawBody, req.headers, RESEND_WEBHOOK_SECRET);
+      const rawBody = typeof body === "string" ? body : JSON.stringify(body);
+      const valid = verifySignature(
+        rawBody,
+        req.headers,
+        RESEND_WEBHOOK_SECRET,
+      );
       if (!valid) {
         console.error("[inbound-email] Signature verification failed");
         // Return 200 to stop retries — log for debugging
@@ -177,35 +181,54 @@ module.exports = async function handler(req, res) {
     const subject = data.subject || "";
     const emailId = data.email_id || "";
 
-    // The webhook payload does NOT include the email body.
-    // We must fetch it from the Resend API using the email_id.
-    let textBody = data.text || "";
-    let htmlBody = data.html || data.body || "";
+    // Log FULL payload for debugging
+    console.log("[inbound-email] FULL PAYLOAD:", JSON.stringify(body, null, 2));
+    console.log("[inbound-email] DATA KEYS:", Object.keys(data));
 
+    // Try to get body from webhook payload first (all possible field names)
+    let textBody = data.text || data.plain_text || data.plain_body || data.body_text || "";
+    let htmlBody = data.html || data.html_body || data.body_html || data.body || data.content || "";
+
+    // If no body in webhook, fetch from Resend API using SDK
     if (!textBody && !htmlBody && emailId && process.env.RESEND_API_KEY) {
-      console.log("[inbound-email] Fetching email body from Resend API:", emailId);
+      console.log("[inbound-email] No body in webhook payload, fetching via Resend SDK:", emailId);
       try {
-        const fetchRes = await fetch(`https://api.resend.com/emails/${emailId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-        });
-        if (fetchRes.ok) {
-          const emailData = await fetchRes.json();
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const { data: emailData, error: emailError } = await resend.emails.get(emailId);
+        if (emailError) {
+          console.error("[inbound-email] Resend SDK get error:", emailError);
+        } else if (emailData) {
+          console.log("[inbound-email] Resend SDK response keys:", Object.keys(emailData));
           textBody = emailData.text || "";
           htmlBody = emailData.html || emailData.body || "";
-          console.log("[inbound-email] Fetched email body:", {
+          console.log("[inbound-email] Fetched body via SDK:", {
             hasText: !!textBody,
-            textLen: textBody.length,
+            textLen: textBody ? textBody.length : 0,
             hasHtml: !!htmlBody,
+            htmlLen: htmlBody ? htmlBody.length : 0,
           });
-        } else {
-          console.error("[inbound-email] Resend API fetch failed:", fetchRes.status, await fetchRes.text());
         }
-      } catch (fetchErr) {
-        console.error("[inbound-email] Resend API fetch error:", fetchErr.message);
+      } catch (sdkErr) {
+        console.error("[inbound-email] Resend SDK error:", sdkErr.message);
+      }
+
+      // Fallback: try raw fetch if SDK failed
+      if (!textBody && !htmlBody) {
+        try {
+          const fetchRes = await fetch(`https://api.resend.com/emails/${emailId}`, {
+            method: "GET",
+            headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+          });
+          const fetchBody = await fetchRes.text();
+          console.log("[inbound-email] Raw API response:", fetchRes.status, fetchBody.substring(0, 500));
+          if (fetchRes.ok) {
+            const parsed = JSON.parse(fetchBody);
+            textBody = parsed.text || "";
+            htmlBody = parsed.html || parsed.body || "";
+          }
+        } catch (fetchErr) {
+          console.error("[inbound-email] Raw fetch error:", fetchErr.message);
+        }
       }
     }
 
@@ -220,9 +243,7 @@ module.exports = async function handler(req, res) {
     });
 
     if (!fromEmail) {
-      return res
-        .status(200)
-        .json({ received: true, error: "No sender email" });
+      return res.status(200).json({ received: true, error: "No sender email" });
     }
 
     // Extract ticket ID
