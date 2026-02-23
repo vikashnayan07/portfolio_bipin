@@ -1,18 +1,18 @@
 /**
  * POST /api/inbound-email
- * FINAL Production-Ready Resend Inbound Handler
+ * FINAL Correct Production Version
  */
 
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
 const https = require("https");
 
-/* ───────────────────────── Helpers ───────────────────────── */
+/* ───────────────────────── HELPERS ───────────────────────── */
 
 function extractTicketId(subject) {
   if (!subject) return null;
-  const m = subject.match(/\[(TKT-[A-Z0-9]+)\]/i);
-  return m ? m[1].toUpperCase() : null;
+  const match = subject.match(/\[(TKT-[A-Z0-9]+)\]/i);
+  return match ? match[1].toUpperCase() : null;
 }
 
 function extractFromEmail(from) {
@@ -45,7 +45,7 @@ function stripHtml(html) {
 function cleanReply(content) {
   if (!content) return "";
 
-  // Remove quoted Gmail replies
+  // Remove Gmail quoted reply
   content = content.split(/\nOn .* wrote:/)[0];
 
   // Remove quoted lines
@@ -77,13 +77,13 @@ function verifySignature(rawBody, headers, secret) {
   return sig.split(" ").some((s) => s.split(",").pop() === expected);
 }
 
-/* ───────────────────── Resend Fallback API ───────────────────── */
+/* ───────────────────────── RESEND FETCH ───────────────────────── */
 
-function fetchEmailFromResend(emailId, apiKey) {
+function fetchEmailFromResend(messageId, apiKey) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: "api.resend.com",
-      path: `/emails/${emailId}`,
+      path: `/emails/${messageId}`,
       method: "GET",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -107,7 +107,7 @@ function fetchEmailFromResend(emailId, apiKey) {
   });
 }
 
-/* ───────────────────────── Handler ───────────────────────── */
+/* ───────────────────────── HANDLER ───────────────────────── */
 
 module.exports = async function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
@@ -124,17 +124,19 @@ module.exports = async function handler(req, res) {
   } = process.env;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    console.error("Missing Supabase config");
+    console.error("Supabase not configured");
     return res.status(200).json({ error: "Server misconfigured" });
   }
 
   const body = req.body || {};
   const rawBody = JSON.stringify(body);
 
+  /* ───────── Signature Verification ───────── */
+
   if (RESEND_WEBHOOK_SECRET) {
     const valid = verifySignature(rawBody, req.headers, RESEND_WEBHOOK_SECRET);
     if (!valid) {
-      console.error("Invalid signature");
+      console.error("Invalid webhook signature");
       return res.status(200).json({ error: "Invalid signature" });
     }
   }
@@ -146,29 +148,34 @@ module.exports = async function handler(req, res) {
   const data = body.data || {};
   const fromEmail = extractFromEmail(data.from);
   const subject = data.subject || "";
-  const emailId = data.email_id || data.id || "";
+
+  // ✅ CORRECT ID (IMPORTANT FIX)
+  const messageId = body.id || "";
 
   console.log("Inbound from:", fromEmail);
   console.log("Subject:", subject);
+  console.log("Resend Message ID:", messageId);
 
-  /* ───────── Body Extraction ───────── */
+  /* ───────── BODY EXTRACTION ───────── */
 
   let text = data.text || data.plain_text || "";
   let html = data.html || "";
 
-  // Fallback API fetch
-  if (!text && !html && emailId && RESEND_API_KEY) {
+  // If webhook body missing → fetch from Resend API
+  if (!text && !html && messageId && RESEND_API_KEY) {
     try {
-      const json = await fetchEmailFromResend(emailId, RESEND_API_KEY);
+      const json = await fetchEmailFromResend(messageId, RESEND_API_KEY);
+
       text = json.text || json.plain_text || "";
       html = json.html || "";
-    } catch (e) {
-      console.error("Resend fallback failed");
+
+      console.log("Fetched body from Resend API");
+    } catch (err) {
+      console.error("Resend API fetch failed");
     }
   }
 
   let messageBody = text || stripHtml(html) || "";
-
   messageBody = cleanReply(messageBody);
 
   if (!messageBody) {
@@ -177,11 +184,11 @@ module.exports = async function handler(req, res) {
 
   console.log("Final body:", messageBody.slice(0, 150));
 
-  /* ───────── Supabase Init ───────── */
+  /* ───────── SUPABASE INIT ───────── */
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  /* ───────── Match Conversation ───────── */
+  /* ───────── MATCH CONVERSATION ───────── */
 
   const ticketId = extractTicketId(subject);
   let message = null;
@@ -212,7 +219,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ unmatched: true });
   }
 
-  /* ───────── Prevent Duplicate ───────── */
+  /* ───────── DUPLICATE PREVENTION ───────── */
 
   const { data: existing } = await supabase
     .from("replies")
@@ -226,7 +233,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ duplicate: true });
   }
 
-  /* ───────── Save Reply ───────── */
+  /* ───────── SAVE REPLY ───────── */
 
   const { error } = await supabase.from("replies").insert({
     message_id: message.id,
@@ -235,7 +242,7 @@ module.exports = async function handler(req, res) {
   });
 
   if (error) {
-    console.error("Insert failed:", error);
+    console.error("Reply insert failed:", error);
     return res.status(200).json({ db_error: true });
   }
 
