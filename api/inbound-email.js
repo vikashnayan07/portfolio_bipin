@@ -1,11 +1,13 @@
 /**
  * POST /api/inbound-email
- * Resend Inbound Webhook Handler (Vercel Production Safe)
+ * Resend Inbound Webhook Handler (Optimized Production Version)
  */
 
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
 
+/* ───────────────────────────────────────────── */
+/* Helpers */
 /* ───────────────────────────────────────────── */
 
 function extractTicketId(subject) {
@@ -16,23 +18,46 @@ function extractTicketId(subject) {
 
 function extractFromEmail(from) {
   if (!from) return "";
+
   if (typeof from === "string") {
     const m = from.match(/<([^>]+)>/);
-    return m ? m[1].toLowerCase() : from.toLowerCase();
+    return (m ? m[1] : from).toLowerCase();
   }
+
   if (Array.isArray(from) && from[0]) {
     return (from[0].address || from[0].email || "").toLowerCase();
   }
+
   return (from.address || from.email || "").toLowerCase();
 }
 
 function stripHtml(html) {
-  return (
-    html
-      ?.replace(/<[^>]+>/g, "")
-      ?.replace(/\s+/g, " ")
-      ?.trim() || ""
-  );
+  if (!html) return "";
+
+  return html
+    .replace(/<style[^>]*>.*?<\/style>/gis, "")
+    .replace(/<script[^>]*>.*?<\/script>/gis, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n\s*\n/g, "\n\n")
+    .trim();
+}
+
+function cleanReply(content) {
+  if (!content) return "";
+
+  // Remove Gmail quoted reply section
+  const splitOn = content.split(/\nOn .* wrote:/);
+  content = splitOn[0];
+
+  // Remove lines starting with >
+  content = content
+    .split("\n")
+    .filter((line) => !line.trim().startsWith(">"))
+    .join("\n");
+
+  return content.trim();
 }
 
 function verifySignature(rawBody, headers, secret) {
@@ -45,17 +70,19 @@ function verifySignature(rawBody, headers, secret) {
   const now = Math.floor(Date.now() / 1000);
   if (Math.abs(now - parseInt(ts, 10)) > 300) return false;
 
-  const signed = `${id}.${ts}.${rawBody}`;
+  const signedPayload = `${id}.${ts}.${rawBody}`;
   const key = Buffer.from(secret.split("_").pop(), "base64");
 
   const expected = crypto
     .createHmac("sha256", key)
-    .update(signed)
+    .update(signedPayload)
     .digest("base64");
 
   return sig.split(" ").some((s) => s.split(",").pop() === expected);
 }
 
+/* ───────────────────────────────────────────── */
+/* Handler */
 /* ───────────────────────────────────────────── */
 
 module.exports = async function handler(req, res) {
@@ -76,8 +103,6 @@ module.exports = async function handler(req, res) {
     console.error("[inbound] Missing Supabase config");
     return res.status(200).json({ error: "Server misconfigured" });
   }
-
-  /* ───────── Safe Body Handling (Vercel Compatible) ───────── */
 
   const body = req.body || {};
   const rawBody = JSON.stringify(body);
@@ -111,13 +136,11 @@ module.exports = async function handler(req, res) {
   let text = data.text || data.plain_text || "";
   let html = data.html || "";
 
-  // Fallback → fetch from Resend API
+  // Resend API fallback
   if (!text && !html && emailId && RESEND_API_KEY) {
     try {
       const resp = await fetch(`https://api.resend.com/emails/${emailId}`, {
-        headers: {
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-        },
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
       });
 
       if (resp.ok) {
@@ -131,12 +154,13 @@ module.exports = async function handler(req, res) {
   }
 
   let messageBody = text || stripHtml(html) || "";
+  messageBody = cleanReply(messageBody);
 
   if (!messageBody) {
     messageBody = "[User replied via email — body unavailable]";
   }
 
-  console.log("[inbound] Body preview:", messageBody.slice(0, 100));
+  console.log("[inbound] Cleaned body:", messageBody.slice(0, 150));
 
   /* ───────── Supabase Init ───────── */
 
@@ -147,36 +171,44 @@ module.exports = async function handler(req, res) {
   const ticketId = extractTicketId(subject);
   let message = null;
 
-  // 1️⃣ Try ticket match
   if (ticketId) {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("contact_messages")
       .select("*")
       .eq("ticket_id", ticketId)
       .limit(1);
 
-    if (!error && data && data.length > 0) {
-      message = data[0];
-    }
+    if (data?.length) message = data[0];
   }
 
-  // 2️⃣ Fallback by email
   if (!message && fromEmail) {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("contact_messages")
       .select("*")
       .ilike("email", fromEmail)
       .order("created_at", { ascending: false })
       .limit(1);
 
-    if (!error && data && data.length > 0) {
-      message = data[0];
-    }
+    if (data?.length) message = data[0];
   }
 
   if (!message) {
     console.log("[inbound] No matching conversation found");
     return res.status(200).json({ unmatched: true });
+  }
+
+  /* ───────── Prevent Duplicate Insert ───────── */
+
+  const { data: existing } = await supabase
+    .from("replies")
+    .select("id")
+    .eq("message_id", message.id)
+    .eq("reply_text", messageBody)
+    .limit(1);
+
+  if (existing?.length) {
+    console.log("[inbound] Duplicate reply ignored");
+    return res.status(200).json({ duplicate: true });
   }
 
   /* ───────── Save Reply ───────── */
