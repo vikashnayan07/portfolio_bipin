@@ -116,32 +116,22 @@ module.exports = async function handler(req, res) {
   console.log("Inbound from:", fromEmail);
   console.log("Subject:", subject);
 
-  /* ───────── BODY EXTRACTION ───────── */
+  /* ───────── BODY EXTRACTION (FINAL FIX) ───────── */
 
   let messageBody = "";
 
-  // 1️⃣ direct text
-  if (data.text) {
-    messageBody = data.text;
-  }
-
-  // 2️⃣ html
-  else if (data.html) {
-    messageBody = stripHtml(data.html);
-  }
-
-  // 3️⃣ raw MIME body (important for Gmail)
-  else if (data.raw) {
-    const parts = data.raw.split("\r\n\r\n");
-    if (parts.length > 1) {
-      messageBody = parts.slice(1).join("\n");
+  if (data.message) {
+    if (data.message.text) {
+      messageBody = data.message.text;
+    } else if (data.message.html) {
+      messageBody = stripHtml(data.message.html);
     }
   }
 
   messageBody = cleanReply(messageBody);
 
   if (!messageBody) {
-    messageBody = "[Body could not be extracted]";
+    messageBody = "[Body not received from webhook]";
   }
 
   console.log("Final body:", messageBody.slice(0, 200));
