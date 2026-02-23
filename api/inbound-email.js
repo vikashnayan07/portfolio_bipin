@@ -116,22 +116,39 @@ module.exports = async function handler(req, res) {
   console.log("Inbound from:", fromEmail);
   console.log("Subject:", subject);
 
-  /* ───────── BODY EXTRACTION (FINAL FIX) ───────── */
+  /* ───────── FETCH BODY FROM RESEND API (REAL FIX) ───────── */
 
   let messageBody = "";
 
-  if (data.message) {
-    if (data.message.text) {
-      messageBody = data.message.text;
-    } else if (data.message.html) {
-      messageBody = stripHtml(data.message.html);
+  const messageId = data.email_id;
+
+  if (messageId && process.env.RESEND_API_KEY) {
+    try {
+      const response = await fetch(
+        `https://api.resend.com/emails/${messageId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          },
+        },
+      );
+
+      const json = await response.json();
+
+      if (json.text) {
+        messageBody = json.text;
+      } else if (json.html) {
+        messageBody = stripHtml(json.html);
+      }
+    } catch (err) {
+      console.error("Failed to fetch from Resend API", err);
     }
   }
 
   messageBody = cleanReply(messageBody);
 
   if (!messageBody) {
-    messageBody = "[Body not received from webhook]";
+    messageBody = "[Body not available from Resend API]";
   }
 
   console.log("Final body:", messageBody.slice(0, 200));
