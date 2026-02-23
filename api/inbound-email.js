@@ -1,11 +1,10 @@
 /**
  * POST /api/inbound-email
- * FINAL STABLE VERSION
+ * FINAL PRODUCTION STABLE VERSION
  */
 
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
-const https = require("https");
 
 /* ───────────── HELPERS ───────────── */
 
@@ -76,34 +75,6 @@ function verifySignature(rawBody, headers, secret) {
   return sig.split(" ").some((s) => s.split(",").pop() === expected);
 }
 
-function fetchEmailFromResend(messageId, apiKey) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: "api.resend.com",
-      path: `/emails/${messageId}`,
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-    };
-
-    const req = https.request(options, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => {
-        try {
-          resolve(JSON.parse(data));
-        } catch (err) {
-          reject(err);
-        }
-      });
-    });
-
-    req.on("error", reject);
-    req.end();
-  });
-}
-
 /* ───────────── HANDLER ───────────── */
 
 module.exports = async function handler(req, res) {
@@ -113,12 +84,8 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
-  const {
-    SUPABASE_URL,
-    SUPABASE_SERVICE_KEY,
-    RESEND_API_KEY,
-    RESEND_WEBHOOK_SECRET,
-  } = process.env;
+  const { SUPABASE_URL, SUPABASE_SERVICE_KEY, RESEND_WEBHOOK_SECRET } =
+    process.env;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     console.error("Supabase not configured");
@@ -127,6 +94,8 @@ module.exports = async function handler(req, res) {
 
   const body = req.body || {};
   const rawBody = JSON.stringify(body);
+
+  /* ───────── SIGNATURE VERIFY ───────── */
 
   if (RESEND_WEBHOOK_SECRET) {
     const valid = verifySignature(rawBody, req.headers, RESEND_WEBHOOK_SECRET);
@@ -143,33 +112,29 @@ module.exports = async function handler(req, res) {
   const data = body.data || {};
   const fromEmail = extractFromEmail(data.from);
   const subject = data.subject || "";
-  const messageId = data.email_id || "";
 
   console.log("Inbound from:", fromEmail);
   console.log("Subject:", subject);
-  console.log("Resend Message ID:", messageId);
 
-  /* ───────── BODY EXTRACTION (RAW FIX) ───────── */
+  /* ───────── BODY EXTRACTION ───────── */
 
   let messageBody = "";
 
-  // 1️⃣ Try direct text
+  // 1️⃣ direct text
   if (data.text) {
     messageBody = data.text;
   }
 
-  // 2️⃣ Try HTML
+  // 2️⃣ html
   else if (data.html) {
     messageBody = stripHtml(data.html);
   }
 
-  // 3️⃣ Try RAW (Most Important Fix)
+  // 3️⃣ raw MIME body (important for Gmail)
   else if (data.raw) {
-    const raw = data.raw;
-
-    const bodyMatch = raw.split("\r\n\r\n");
-    if (bodyMatch.length > 1) {
-      messageBody = bodyMatch.slice(1).join("\n");
+    const parts = data.raw.split("\r\n\r\n");
+    if (parts.length > 1) {
+      messageBody = parts.slice(1).join("\n");
     }
   }
 
@@ -180,6 +145,10 @@ module.exports = async function handler(req, res) {
   }
 
   console.log("Final body:", messageBody.slice(0, 200));
+
+  /* ───────── INIT SUPABASE (FIXED) ───────── */
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
   /* ───────── MATCH MESSAGE ───────── */
 
@@ -212,6 +181,20 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ unmatched: true });
   }
 
+  /* ───────── DUPLICATE PREVENTION ───────── */
+
+  const { data: existing } = await supabase
+    .from("replies")
+    .select("id")
+    .eq("message_id", message.id)
+    .eq("reply_text", messageBody)
+    .limit(1);
+
+  if (existing?.length) {
+    console.log("Duplicate ignored");
+    return res.status(200).json({ duplicate: true });
+  }
+
   /* ───────── SAVE REPLY ───────── */
 
   const { error } = await supabase.from("replies").insert({
@@ -237,7 +220,6 @@ module.exports = async function handler(req, res) {
 
   return res.status(200).json({
     success: true,
-    messageId: message.id,
     ticketId: message.ticket_id,
   });
 };
