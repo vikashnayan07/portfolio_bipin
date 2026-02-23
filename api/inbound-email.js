@@ -1,6 +1,6 @@
 /**
  * POST /api/inbound-email
- * Resend Inbound Webhook Handler (Vercel Compatible)
+ * Resend Inbound Webhook Handler (Vercel Production Safe)
  */
 
 const { createClient } = require("@supabase/supabase-js");
@@ -73,32 +73,23 @@ module.exports = async function handler(req, res) {
   } = process.env;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    return res.status(200).json({ error: "Missing Supabase config" });
+    console.error("[inbound] Missing Supabase config");
+    return res.status(200).json({ error: "Server misconfigured" });
   }
 
-  /* ───────── RAW BODY CAPTURE (CRITICAL FIX) ───────── */
+  /* ───────── Safe Body Handling (Vercel Compatible) ───────── */
 
-  const rawBody = await new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", (chunk) => (data += chunk));
-    req.on("end", () => resolve(data));
-    req.on("error", reject);
-  });
-
-  let body = {};
-  try {
-    body = JSON.parse(rawBody);
-  } catch (e) {}
+  const body = req.body || {};
+  const rawBody = JSON.stringify(body);
 
   console.log("[inbound] Event type:", body.type);
 
-  /* ───────── SIGNATURE VERIFY ───────── */
+  /* ───────── Signature Verification ───────── */
 
   if (RESEND_WEBHOOK_SECRET) {
     const valid = verifySignature(rawBody, req.headers, RESEND_WEBHOOK_SECRET);
-
     if (!valid) {
-      console.error("[inbound] Signature verification failed");
+      console.error("[inbound] Invalid signature");
       return res.status(200).json({ error: "Invalid signature" });
     }
   }
@@ -115,7 +106,7 @@ module.exports = async function handler(req, res) {
   console.log("[inbound] From:", fromEmail);
   console.log("[inbound] Subject:", subject);
 
-  /* ───────── BODY EXTRACTION ───────── */
+  /* ───────── Body Extraction ───────── */
 
   let text = data.text || data.plain_text || "";
   let html = data.html || "";
@@ -135,7 +126,7 @@ module.exports = async function handler(req, res) {
         html = json.html || "";
       }
     } catch (e) {
-      console.log("[inbound] API fetch failed");
+      console.error("[inbound] Resend API fallback failed");
     }
   }
 
@@ -145,50 +136,68 @@ module.exports = async function handler(req, res) {
     messageBody = "[User replied via email — body unavailable]";
   }
 
-  console.log("[inbound] Body preview:", messageBody.slice(0, 80));
+  console.log("[inbound] Body preview:", messageBody.slice(0, 100));
 
-  /* ───────── MATCH CONVERSATION ───────── */
+  /* ───────── Supabase Init ───────── */
 
-  const ticketId = extractTicketId(subject);
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+  /* ───────── Match Conversation ───────── */
+
+  const ticketId = extractTicketId(subject);
   let message = null;
 
+  // 1️⃣ Try ticket match
   if (ticketId) {
-    const { data: found } = await supabase
+    const { data, error } = await supabase
       .from("contact_messages")
       .select("*")
       .eq("ticket_id", ticketId)
-      .single();
-    message = found;
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      message = data[0];
+    }
   }
 
-  if (!message) {
-    const { data: found } = await supabase
+  // 2️⃣ Fallback by email
+  if (!message && fromEmail) {
+    const { data, error } = await supabase
       .from("contact_messages")
       .select("*")
       .ilike("email", fromEmail)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-    message = found;
+      .limit(1);
+
+    if (!error && data && data.length > 0) {
+      message = data[0];
+    }
   }
 
   if (!message) {
+    console.log("[inbound] No matching conversation found");
     return res.status(200).json({ unmatched: true });
   }
 
-  /* ───────── SAVE REPLY ───────── */
+  /* ───────── Save Reply ───────── */
 
-  await supabase.from("replies").insert({
+  const { error: insertError } = await supabase.from("replies").insert({
     message_id: message.id,
     sender_type: "user",
     reply_text: messageBody,
   });
 
+  if (insertError) {
+    console.error("[inbound] Reply insert failed:", insertError);
+    return res.status(200).json({ db_error: true });
+  }
+
   await supabase
     .from("contact_messages")
-    .update({ status: "user_replied" })
+    .update({
+      status: "user_replied",
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", message.id);
 
   console.log("[inbound] SUCCESS");
