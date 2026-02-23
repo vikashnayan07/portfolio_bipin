@@ -149,32 +149,37 @@ module.exports = async function handler(req, res) {
   console.log("Subject:", subject);
   console.log("Resend Message ID:", messageId);
 
-  /* ───────── BODY EXTRACTION ───────── */
+  /* ───────── BODY EXTRACTION (RAW FIX) ───────── */
 
-  let text = data.text || data.plain_text || "";
-  let html = data.html || "";
+  let messageBody = "";
 
-  if (!text && !html && messageId && RESEND_API_KEY) {
-    try {
-      const json = await fetchEmailFromResend(messageId, RESEND_API_KEY);
-      text = json.text || json.plain_text || "";
-      html = json.html || "";
-      console.log("Fetched body from Resend API");
-    } catch (err) {
-      console.error("Resend API fetch failed", err);
+  // 1️⃣ Try direct text
+  if (data.text) {
+    messageBody = data.text;
+  }
+
+  // 2️⃣ Try HTML
+  else if (data.html) {
+    messageBody = stripHtml(data.html);
+  }
+
+  // 3️⃣ Try RAW (Most Important Fix)
+  else if (data.raw) {
+    const raw = data.raw;
+
+    const bodyMatch = raw.split("\r\n\r\n");
+    if (bodyMatch.length > 1) {
+      messageBody = bodyMatch.slice(1).join("\n");
     }
   }
 
-  let messageBody = text || stripHtml(html) || "";
   messageBody = cleanReply(messageBody);
 
   if (!messageBody) {
-    messageBody = "[User replied via email — body unavailable]";
+    messageBody = "[Body could not be extracted]";
   }
 
-  console.log("Final body:", messageBody.slice(0, 150));
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  console.log("Final body:", messageBody.slice(0, 200));
 
   /* ───────── MATCH MESSAGE ───────── */
 
