@@ -1,13 +1,13 @@
 /**
  * POST /api/inbound-email
- * FINAL Correct Production Version
+ * FINAL STABLE VERSION
  */
 
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
 const https = require("https");
 
-/* ───────────────────────── HELPERS ───────────────────────── */
+/* ───────────── HELPERS ───────────── */
 
 function extractTicketId(subject) {
   if (!subject) return null;
@@ -45,10 +45,8 @@ function stripHtml(html) {
 function cleanReply(content) {
   if (!content) return "";
 
-  // Remove Gmail quoted reply
   content = content.split(/\nOn .* wrote:/)[0];
 
-  // Remove quoted lines
   content = content
     .split("\n")
     .filter((line) => !line.trim().startsWith(">"))
@@ -61,6 +59,7 @@ function verifySignature(rawBody, headers, secret) {
   const id = headers["svix-id"];
   const ts = headers["svix-timestamp"];
   const sig = headers["svix-signature"];
+
   if (!id || !ts || !sig) return false;
 
   const now = Math.floor(Date.now() / 1000);
@@ -76,8 +75,6 @@ function verifySignature(rawBody, headers, secret) {
 
   return sig.split(" ").some((s) => s.split(",").pop() === expected);
 }
-
-/* ───────────────────────── RESEND FETCH ───────────────────────── */
 
 function fetchEmailFromResend(messageId, apiKey) {
   return new Promise((resolve, reject) => {
@@ -107,7 +104,7 @@ function fetchEmailFromResend(messageId, apiKey) {
   });
 }
 
-/* ───────────────────────── HANDLER ───────────────────────── */
+/* ───────────── HANDLER ───────────── */
 
 module.exports = async function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
@@ -131,8 +128,6 @@ module.exports = async function handler(req, res) {
   const body = req.body || {};
   const rawBody = JSON.stringify(body);
 
-  /* ───────── Signature Verification ───────── */
-
   if (RESEND_WEBHOOK_SECRET) {
     const valid = verifySignature(rawBody, req.headers, RESEND_WEBHOOK_SECRET);
     if (!valid) {
@@ -148,9 +143,7 @@ module.exports = async function handler(req, res) {
   const data = body.data || {};
   const fromEmail = extractFromEmail(data.from);
   const subject = data.subject || "";
-
-  // ✅ CORRECT ID (IMPORTANT FIX)
-  const messageId = body.id || "";
+  const messageId = data.email_id || "";
 
   console.log("Inbound from:", fromEmail);
   console.log("Subject:", subject);
@@ -161,17 +154,14 @@ module.exports = async function handler(req, res) {
   let text = data.text || data.plain_text || "";
   let html = data.html || "";
 
-  // If webhook body missing → fetch from Resend API
   if (!text && !html && messageId && RESEND_API_KEY) {
     try {
       const json = await fetchEmailFromResend(messageId, RESEND_API_KEY);
-
       text = json.text || json.plain_text || "";
       html = json.html || "";
-
       console.log("Fetched body from Resend API");
     } catch (err) {
-      console.error("Resend API fetch failed");
+      console.error("Resend API fetch failed", err);
     }
   }
 
@@ -184,11 +174,9 @@ module.exports = async function handler(req, res) {
 
   console.log("Final body:", messageBody.slice(0, 150));
 
-  /* ───────── SUPABASE INIT ───────── */
-
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  /* ───────── MATCH CONVERSATION ───────── */
+  /* ───────── MATCH MESSAGE ───────── */
 
   const ticketId = extractTicketId(subject);
   let message = null;
@@ -217,20 +205,6 @@ module.exports = async function handler(req, res) {
   if (!message) {
     console.log("No conversation match");
     return res.status(200).json({ unmatched: true });
-  }
-
-  /* ───────── DUPLICATE PREVENTION ───────── */
-
-  const { data: existing } = await supabase
-    .from("replies")
-    .select("id")
-    .eq("message_id", message.id)
-    .eq("reply_text", messageBody)
-    .limit(1);
-
-  if (existing?.length) {
-    console.log("Duplicate ignored");
-    return res.status(200).json({ duplicate: true });
   }
 
   /* ───────── SAVE REPLY ───────── */
