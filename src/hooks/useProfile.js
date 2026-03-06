@@ -58,7 +58,7 @@ const useProfile = () => {
   return {
     loading,
     refetch,
-    photoUrl: profile?.photo_url || "/rehman.jpeg",
+    photoUrl: profile?.photo_url || "/rehman.webp",
     fullName: profile?.full_name || "Bipin Kumar",
     firstName: (profile?.full_name || "Bipin Kumar").split(" ")[0] || "Bipin",
     lastName:

@@ -65,7 +65,8 @@ const Footer = () => {
             className="flex items-center gap-3 text-2xl font-heading font-bold gradient-text mb-4 md:mb-0"
           >
             <img
-              src="/logo.png"
+              src="/logo.webp"
+              loading="lazy"
               alt="BK Logo"
               className="w-10 h-10 rounded-full object-cover"
             />

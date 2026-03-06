@@ -5,13 +5,15 @@ import Lenis from "lenis";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/layout/Navbar";
-import Hero from "./components/sections/Hero";
 import Loader from "./components/ui/Loader";
-import ScrollProgress from "./components/ui/ScrollProgress";
-import CursorGlow from "./components/ui/CursorGlow";
 import SectionDivider from "./components/ui/SectionDivider";
-import BackToTopRocket from "./components/ui/BackToTopRocket";
 import "./styles/aurora-mobile.css";
+
+/* ── Lazy-loaded above-fold components (were eagerly loaded) ── */
+const Hero = lazy(() => import("./components/sections/Hero"));
+const ScrollProgress = lazy(() => import("./components/ui/ScrollProgress"));
+const CursorGlow = lazy(() => import("./components/ui/CursorGlow"));
+const BackToTopRocket = lazy(() => import("./components/ui/BackToTopRocket"));
 
 /* ── Lazy-loaded sections for faster initial load ── */
 const About = lazy(() => import("./components/sections/About"));
@@ -186,7 +188,9 @@ function App() {
 
         <Navbar />
         <main>
-          <Hero />
+          <Suspense fallback={<div className="min-h-screen" />}>
+            <Hero />
+          </Suspense>
           <Suspense fallback={null}>
             <SectionDivider />
 

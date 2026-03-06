@@ -91,6 +91,8 @@ const FeaturedPost = ({ post }) => {
                 src={post.coverImage}
                 alt={post.title}
                 className="relative z-10 w-full h-full object-cover rounded-xl"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               <motion.div
@@ -250,6 +252,8 @@ const BlogCard = ({ post, index }) => {
                 src={post.coverImage}
                 alt={post.title}
                 className="w-full h-full object-cover relative z-10"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               <motion.span

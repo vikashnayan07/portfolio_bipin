@@ -846,7 +846,7 @@ const BiharInteractiveMap = ({ className = "" }) => {
                             strokeWidth={1.5}
                           />
                           <image
-                            href="/IMG_20180505_065332.jpg"
+                            href="/IMG_20180505_065332.webp"
                             x={-7}
                             y={-7}
                             width={14}
@@ -982,7 +982,8 @@ const BiharInteractiveMap = ({ className = "" }) => {
                       <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full overflow-hidden border border-saffron/40">
                           <img
-                            src="/IMG_20180505_065332.jpg"
+                            src="/IMG_20180505_065332.webp"
+                            loading="lazy"
                             alt=""
                             className="w-full h-full object-cover"
                           />

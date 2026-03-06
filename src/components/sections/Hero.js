@@ -415,6 +415,7 @@ const MagneticPhoto = ({
                 className="w-full h-full object-cover object-top"
                 draggable="false"
                 loading="eager"
+                decoding="async"
               />
 
               {/* Subtle top-light reflection */}
@@ -577,6 +578,7 @@ const MagneticPhoto = ({
               className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[95%] object-cover object-top"
               draggable="false"
               loading="eager"
+              decoding="async"
               style={{
                 height: "110%",
                 willChange: "transform",
@@ -806,6 +808,7 @@ const MobileHeroBento = ({
                   }}
                   draggable="false"
                   loading="eager"
+                  decoding="async"
                 />
               </div>
               <div
@@ -1499,7 +1502,7 @@ const Hero = () => {
             className="absolute inset-0"
             style={{
               y: bgY,
-              backgroundImage: "url('/pudha_bg.jpg')",
+              backgroundImage: "url('/pudha_bg.webp')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               opacity: darkMode ? 0.04 : 0.03,

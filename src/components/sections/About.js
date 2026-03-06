@@ -128,7 +128,7 @@ const educationData = [
     color: "#FF9933",
     icon: "📚",
     board: "BSEB",
-    bgImg: "/images.jpg",
+    bgImg: "/images.webp",
   },
   {
     label: "Intermediate",
@@ -137,7 +137,7 @@ const educationData = [
     color: "#FFD700",
     icon: "📖",
     board: "BSEB",
-    bgImg: "/images.jpg",
+    bgImg: "/images.webp",
   },
   {
     label: "Graduation",
@@ -146,8 +146,7 @@ const educationData = [
     color: "#F4A261",
     icon: "🎓",
     board: "LNMU",
-    bgImg:
-      "/Lalit-Narayan-Mithila-University-in-Darbhanga---HT_1682006882370.webp",
+    bgImg: "/university.webp",
   },
   {
     label: "B.Ed",
@@ -156,8 +155,7 @@ const educationData = [
     color: "#4ECCA3",
     icon: "🏫",
     board: "LNMU",
-    bgImg:
-      "/Lalit-Narayan-Mithila-University-in-Darbhanga---HT_1682006882370.webp",
+    bgImg: "/university.webp",
   },
 ];
 
@@ -214,6 +212,8 @@ const EducationArcGauges = ({ darkMode }) => {
                     filter: "grayscale(30%)",
                   }}
                   draggable="false"
+                  loading="lazy"
+                  decoding="async"
                 />
                 {/* Gradient overlay on image */}
                 <div
@@ -446,6 +446,8 @@ const About = () => {
                     alt={fullName}
                     className="w-full h-full object-cover object-center"
                     draggable="false"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </motion.div>
                 <div>
