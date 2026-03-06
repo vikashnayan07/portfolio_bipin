@@ -197,6 +197,12 @@ async function fetchEmailFromResend(emailId, apiKey, delayMs = 0) {
   console.log("[RESEND API] Response keys:", Object.keys(json).join(", "));
   console.log("[RESEND API] text length:", json.text?.length || 0);
   console.log("[RESEND API] html length:", json.html?.length || 0);
+  // Log ALL string fields in API response
+  for (const [k, v] of Object.entries(json)) {
+    if (typeof v === "string" && v.length > 0) {
+      console.log(`[RESEND API] ${k} (${v.length} chars):`, v.slice(0, 200));
+    }
+  }
 
   return json;
 }
@@ -210,6 +216,64 @@ function extractBody(emailObj) {
   if (emailObj.text) return emailObj.text;
   if (emailObj.html) return stripHtml(emailObj.html);
   return "";
+}
+
+/**
+ * Recursively scan an object for any field that looks like email body content.
+ * Checks common field names: text, html, body, content, plain, raw, message.
+ * Returns { value: string, path: string } or null.
+ */
+function deepScanForBody(obj, path = "data", depth = 0) {
+  if (!obj || depth > 5) return null;
+
+  const bodyFieldNames = [
+    "text",
+    "html",
+    "body",
+    "content",
+    "plain",
+    "raw",
+    "message",
+    "text_body",
+    "html_body",
+    "text_content",
+    "html_content",
+    "plain_text",
+    "stripped-text",
+    "stripped-html",
+    "body-plain",
+    "body-html",
+  ];
+
+  // Check direct string fields that look like body content
+  for (const key of bodyFieldNames) {
+    if (obj[key] && typeof obj[key] === "string" && obj[key].length > 5) {
+      return { value: obj[key], path: `${path}.${key}`, isHtml: key.includes("html") };
+    }
+  }
+
+  // Recurse into nested objects
+  for (const [key, val] of Object.entries(obj)) {
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      const found = deepScanForBody(val, `${path}.${key}`, depth + 1);
+      if (found) return found;
+    }
+    // Check arrays (e.g., parts, attachments)
+    if (Array.isArray(val)) {
+      for (let i = 0; i < val.length; i++) {
+        if (val[i] && typeof val[i] === "object") {
+          const found = deepScanForBody(val[i], `${path}.${key}[${i}]`, depth + 1);
+          if (found) return found;
+        }
+        // Direct string in array that's long enough to be a body
+        if (typeof val[i] === "string" && val[i].length > 20) {
+          return { value: val[i], path: `${path}.${key}[${i}]`, isHtml: false };
+        }
+      }
+    }
+  }
+
+  return null;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -282,6 +346,18 @@ module.exports = async function handler(req, res) {
   console.log("[INBOUND] subject:  ", data.subject);
   console.log("[INBOUND] email_id: ", data.email_id || data.id || "MISSING");
   console.log("[INBOUND] payload keys:", Object.keys(data).join(", "));
+  // Log ALL string-valued fields and their lengths to find where body hides
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v === "string") {
+      console.log(`[INBOUND] data.${k} (${v.length} chars):`, v.slice(0, 200));
+    } else if (Array.isArray(v)) {
+      console.log(`[INBOUND] data.${k} (array, ${v.length} items):`, JSON.stringify(v).slice(0, 300));
+    } else if (v && typeof v === "object") {
+      console.log(`[INBOUND] data.${k} (object):`, JSON.stringify(v).slice(0, 300));
+    }
+  }
+  // Dump full raw payload for debugging (truncated to 3000 chars)
+  console.log("[INBOUND] FULL RAW PAYLOAD:", JSON.stringify(body).slice(0, 3000));
   console.log("══════════════════════════════════════════════");
 
   /* ════════════════════════════════════════════════════════════════
@@ -342,7 +418,7 @@ module.exports = async function handler(req, res) {
   let messageBody = "";
   let bodySource = "none";
 
-  // ── Tier 1: Webhook payload ──
+  // ── Tier 1: Webhook payload (direct fields) ──
   if (data.text) {
     messageBody = data.text;
     bodySource = "webhook-text";
@@ -352,6 +428,26 @@ module.exports = async function handler(req, res) {
   } else if (data.body) {
     messageBody = typeof data.body === "string" ? data.body : stripHtml(String(data.body));
     bodySource = "webhook-body";
+  }
+
+  // ── Tier 1b: Deep scan the entire payload for body-like fields ──
+  if (!messageBody) {
+    console.log("[BODY] Direct fields empty — deep scanning payload...");
+    const found = deepScanForBody(body);
+    if (found) {
+      messageBody = found.isHtml ? stripHtml(found.value) : found.value;
+      bodySource = `deep-scan:${found.path}`;
+      console.log(`[BODY] Found via deep scan at ${found.path} (${found.value.length} chars)`);
+    }
+  }
+
+  // ── Tier 1c: Check if body is in top-level body object (outside data) ──
+  if (!messageBody && body.text) {
+    messageBody = body.text;
+    bodySource = "body-text";
+  } else if (!messageBody && body.html) {
+    messageBody = stripHtml(body.html);
+    bodySource = "body-html";
   }
 
   // ── Tier 2: Resend Retrieve Email API ──
@@ -364,7 +460,16 @@ module.exports = async function handler(req, res) {
       try {
         const emailData = await fetchEmailFromResend(emailId, RESEND_API_KEY);
         messageBody = extractBody(emailData);
-        if (messageBody) bodySource = "resend-api";
+        if (messageBody) {
+          bodySource = "resend-api";
+        } else if (emailData) {
+          // Deep scan the API response too
+          const found = deepScanForBody(emailData, "api-response");
+          if (found) {
+            messageBody = found.isHtml ? stripHtml(found.value) : found.value;
+            bodySource = `resend-api-deep:${found.path}`;
+          }
+        }
 
         // ── Tier 3: Retry after delay (email may still be processing) ──
         if (!messageBody) {
@@ -392,15 +497,13 @@ module.exports = async function handler(req, res) {
   messageBody = cleanReply(messageBody);
 
   if (!messageBody) {
+    // Store the raw payload snippet as the body so admin can see what was received
+    const rawSnippet = JSON.stringify(data).slice(0, 500);
     messageBody =
-      "[Email body could not be retrieved — check Resend dashboard for email_id: " +
-      (data.email_id || data.id || "unknown") +
-      "]";
+      "[Email body not available on Resend free plan. Raw payload: " +
+      rawSnippet + "]";
     console.warn("[BODY] All extraction tiers failed");
-    console.log(
-      "[BODY] Raw payload (first 500 chars):",
-      JSON.stringify(data).slice(0, 500),
-    );
+    console.log("[BODY] FULL data object:", JSON.stringify(data));
   }
 
   console.log("[BODY] Source:", bodySource);
