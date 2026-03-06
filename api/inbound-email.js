@@ -497,12 +497,10 @@ module.exports = async function handler(req, res) {
   messageBody = cleanReply(messageBody);
 
   if (!messageBody) {
-    // Store the raw payload snippet as the body so admin can see what was received
-    const rawSnippet = JSON.stringify(data).slice(0, 500);
-    messageBody =
-      "[Email body not available on Resend free plan. Raw payload: " +
-      rawSnippet + "]";
-    console.warn("[BODY] All extraction tiers failed");
+    // Resend free plan doesn't include body in webhook or Retrieve API.
+    // Save a clean notification so admin knows a reply was received.
+    messageBody = "[User replied via email — body not available on Resend free plan. Upgrade to a paid Resend plan to receive full email content.]";
+    console.warn("[BODY] All extraction tiers failed — Resend free plan limitation");
     console.log("[BODY] FULL data object:", JSON.stringify(data));
   }
 
@@ -622,7 +620,6 @@ module.exports = async function handler(req, res) {
     .from("contact_messages")
     .update({
       status: "user_replied",
-      updated_at: new Date().toISOString(),
     })
     .eq("id", message.id);
 
