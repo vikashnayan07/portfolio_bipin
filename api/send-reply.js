@@ -20,7 +20,7 @@ const FROM_EMAIL = "Bipin Kumar <help@bipinoberoy.me>";
 const REPLY_TO_EMAIL = "help@bipinoberoy.me";
 const SITE_NAME = "bipinoberoy.me";
 const SITE_URL = "https://www.bipinoberoy.me";
-const PROFILE_IMG = "https://www.bipinoberoy.me/rehman.jpeg";
+const PROFILE_IMG = "https://www.bipinoberoy.me/rehman.webp";
 
 /* ── Premium Email Template ────────────────────────────── */
 function buildHtmlEmail(
